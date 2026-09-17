@@ -503,7 +503,7 @@ if(touched){console.log('[patch-9router] Applied Codex compatibility patch.');}e
     if (hasBrowser) {
       browserInstall = '\n# Install browser and system dependencies for Playwright\nRUN npx playwright install-deps chromium && npx playwright install chromium\n';
     }
-    const dockerfile = `FROM node:22-slim
+    const dockerfile = `FROM node:24-slim
 
 RUN apt-get update && apt-get install -y git curl python3 && rm -rf /var/lib/apt/lists/*
 

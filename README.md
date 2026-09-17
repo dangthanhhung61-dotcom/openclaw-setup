@@ -247,6 +247,7 @@ Click **Update** in the **top-right corner of the Setup interface**. It download
 ## 📋 System Prerequisites
 
 - **Node.js 24 LTS** (required) — the Setup wizard itself runs on Node, so it's needed for **both** Docker and Native modes. [Download Node.js](https://nodejs.org/).
+  OpenClaw is pinned to **2026.9.4**, which requires **Node.js 24.16.0+ (24.x)** or **26.1.0+**. Node.js 22 and 25 are not supported. The generated OpenClaw Docker image uses `node:24-slim`.
 - **Git**: Installed and available in your environment PATH.
 - **Docker Desktop** (recommended, for the bot runtime): Docker Compose V2. [Download Docker](https://www.docker.com/products/docker-desktop/).
 

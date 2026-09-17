@@ -37,6 +37,19 @@ const CHROME_PROFILE_CACHE_DIRS = [
   'extensions_crx_cache', 'optimization_guide_model_store', 'blob_storage',
 ];
 
+// Match the Node.js engine range published by openclaw@2026.9.4.
+function nodeVersionSupported(version) {
+  const match = String(version || '').match(/^v?(\d+)\.(\d+)\.(\d+)$/);
+  if (!match) return false;
+  const [, major, minor] = match.map(Number);
+  return (major === 24 && minor >= 16) || (major === 26 && minor >= 1) || major > 26;
+}
+function assertOpenclawNodeVersion() {
+  if (!nodeVersionSupported(process.version)) {
+    throw httpError(400, `${OPENCLAW_NPM_SPEC} requires Node.js 24.16.0+ (24.x) or 26.1.0+; detected ${process.version}. Update Node.js before installing.`);
+  }
+}
+
 // openclaw 2026.8.x replaced exec-approvals.json with shared SQLite state and BLOCKS every
 // message dispatch while the legacy file exists ("ExecApprovalsMigrationRequiredError" —
 // measured on vps_c-thu 02/09/2026: the bot went silent with zero model calls, and doctor
@@ -3746,6 +3759,7 @@ async function updateRuntime(target, projectDir) {
   // Native: the runtime is a global npm package, not an image. Reinstall it, then restart the
   // service so the new binary is the one actually serving. This is what replaces "Rebuild".
   if (isNativeProject(projectDir)) {
+    if (!isRouter) assertOpenclawNodeVersion();
     sendLog(`[native] Updating ${target} → ${spec}`);
     await run('npm', ['install', '-g', spec]);
     if (isRouter) await startNative9Router(projectDir, { restart: true }).catch((e) => sendLog(`[native] 9router restart: ${e.message}`));
@@ -5305,6 +5319,8 @@ async function ensureDockerInstalled(osChoice) {
 }
 
 async function installCore({ osChoice, mode, projectDir, gatewayPort = 18789, routerPort = 20128, userTimezone = 'Asia/Ho_Chi_Minh' }) {
+  // Both modes install the global OpenClaw CLI on the host; fail before changing project data.
+  assertOpenclawNodeVersion();
   state.installing = true;
   state.installed = false;
   state.lastError = null;
