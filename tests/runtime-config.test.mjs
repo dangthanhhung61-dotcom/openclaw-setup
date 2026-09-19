@@ -41,9 +41,71 @@ for (const tree of ['src', 'dist']) {
           assert.match(artifacts.dockerfile, /^FROM node:24-slim\r?\n/);
           assert.ok(artifacts.dockerfile.includes(`ARG OPENCLAW_VER="${expectedSpec}"`));
           if (provider === '9router') assert.match(artifacts.compose, /image: node:22-slim/);
+          if (osChoice === 'win') {
+            assert.match(artifacts.compose, /- openclaw-home:\/home\/node\/project\/\.openclaw/);
+            assert.match(artifacts.compose, /\n  openclaw-home:/);
+            assert.doesNotMatch(artifacts.compose, /- \.\.\/\.\.\/\.openclaw:\/home\/node\/project\/\.openclaw/);
+            assert.doesNotMatch(artifacts.compose, /- openclaw-(?:state|extensions|plugins):/);
+          } else {
+            assert.match(artifacts.compose, /- \.\.\/\.\.\/\.openclaw:\/home\/node\/project\/\.openclaw/);
+          }
         }
       }
     }
+  });
+
+  test(`${tree}: old Windows projects retain their bind mount during infra updates`, () => {
+    const context = vm.createContext({ Buffer });
+    vm.runInContext(source(`${tree}/setup/shared/common-gen.js`), context);
+    vm.runInContext(source(`${tree}/setup/shared/docker-gen.js`), context);
+    const artifacts = context.__openclawDockerGen.buildDockerArtifacts({
+      openClawNpmSpec: expectedSpec, osChoice: 'win', windowsHomeStorage: 'bind', is9Router: true,
+    });
+    assert.match(artifacts.compose, /- \.\.\/\.\.\/\.openclaw:\/home\/node\/project\/\.openclaw/);
+    assert.match(artifacts.compose, /- openclaw-state:\/home\/node\/project\/\.openclaw\/state/);
+    assert.match(artifacts.compose, /- openclaw-extensions:\/home\/node\/project\/\.openclaw\/extensions/);
+    assert.doesNotMatch(artifacts.compose, /openclaw-home:/);
+  });
+
+  test(`${tree}: Windows volume setup refuses to overwrite an existing home`, async () => {
+    const server = source(`${tree}/server/local-server.js`);
+    const helper = server.match(/async function prepareWindowsDockerHome\(projectDir\) \{[\s\S]*?\n\}/);
+    assert.ok(helper);
+    const calls = [];
+    const context = vm.createContext({
+      join: path.win32.join, basename: path.win32.basename,
+      slugify: (name) => name.toLowerCase(),
+      fsp: { lstat: async () => ({ isDirectory: () => true }), mkdir: async () => calls.push('mkdir') },
+      run: async () => calls.push('docker'), process: { pid: 42 },
+    });
+    vm.runInContext(helper[0], context);
+    await assert.rejects(() => context.prepareWindowsDockerHome('D:\\bot'), /will not overwrite/);
+    assert.deepEqual(calls, []);
+    assert.match(server, /await prepareWindowsDockerHome\(projectDir\);\s*\}\s*await writeCoreProject/);
+  });
+
+  test(`${tree}: Windows home link is created only after volume verification`, async () => {
+    const server = source(`${tree}/server/local-server.js`);
+    const helper = server.match(/async function prepareWindowsDockerHome\(projectDir\) \{[\s\S]*?\n\}/)[0];
+    const calls = [];
+    const fsp = {
+      lstat: async () => { const e = new Error('missing'); e.code = 'ENOENT'; throw e; },
+      mkdir: async () => calls.push('mkdir'),
+      symlink: async (_, link) => calls.push(link.endsWith('\\.openclaw') ? 'home-link' : 'probe-link'),
+      unlink: async () => calls.push('unlink'),
+      writeFile: async () => calls.push('marker'),
+    };
+    const context = vm.createContext({
+      join: path.win32.join, basename: path.win32.basename,
+      slugify: (name) => name.toLowerCase(), fsp, process: { pid: 42 },
+      existsSync: () => true, sendLog: () => {},
+      run: async (_, args) => { assert.equal(args[2], 'oc-bot_openclaw-home'); calls.push('volume-create'); },
+      runCapture: async () => { calls.push('volume-verified'); return { code: 0 }; },
+    });
+    vm.runInContext(helper, context);
+    await context.prepareWindowsDockerHome('D:\\bot');
+    assert.ok(calls.indexOf('volume-create') > calls.indexOf('probe-link'));
+    assert.ok(calls.indexOf('home-link') > calls.indexOf('volume-verified'));
   });
 
   test(`${tree}: host Node version gate and install/update preflight`, () => {
@@ -124,5 +186,5 @@ test('edited source and distributed files remain identical', () => {
   for (const path of ['setup/shared/common-gen.js', 'setup/shared/docker-gen.js', 'server/local-server.js']) {
     assert.equal(source(`src/${path}`).replace(/\r\n/g, '\n'), source(`dist/${path}`).replace(/\r\n/g, '\n'), path);
   }
-  assert.equal(JSON.parse(source('package.json')).version, '5.16.6');
+  assert.equal(JSON.parse(source('package.json')).version, '5.16.7');
 });

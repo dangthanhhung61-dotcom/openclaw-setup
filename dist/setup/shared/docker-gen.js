@@ -241,6 +241,7 @@ if(touched){console.log('[patch-9router] Applied Codex compatibility patch.');}e
       gatewayPort = 18789,
       routerPort = 20128,
       osChoice = '',
+      windowsHomeStorage = 'volume',
       // Personal-Zalo backend: empty or the single supported `zalo-connect` channel.
       zaloBackend = '',
     } = options;
@@ -248,7 +249,15 @@ if(touched){console.log('[patch-9router] Applied Codex compatibility patch.');}e
     // blocks), so on Windows we isolate extensions in a named volume. On macOS/Linux bind-mounts
     // are fine, so keep extensions under the .openclaw bind mount → plugins stay visible/synced
     // on the host (e.g. you can see zalo-mod in .openclaw/extensions).
-    const useExtensionsVolume = osChoice === 'win';
+    // The entire OpenClaw home must live on Docker's Linux filesystem on Windows.
+    // Legacy projects explicitly pass `bind` during infra sync; never switch their
+    // existing home to an empty volume without a deliberate data migration.
+    const useWindowsHomeVolume = osChoice === 'win' && windowsHomeStorage === 'volume';
+    const homeMount = useWindowsHomeVolume
+      ? 'openclaw-home:/home/node/project/.openclaw\n      - ../../:/mnt/project'
+      : volumeMount;
+    const homeVolDecl = useWindowsHomeVolume ? '\n  openclaw-home:' : '';
+    const useExtensionsVolume = osChoice === 'win' && !useWindowsHomeVolume;
     const extVolMount = useExtensionsVolume ? '\n      - openclaw-extensions:/home/node/project/.openclaw/extensions' : '';
     const extVolDecl = useExtensionsVolume ? '\n  openclaw-extensions:' : '';
     // SQLite state on Docker Desktop (macOS/Windows): the host bind mount goes through a
@@ -257,10 +266,12 @@ if(touched){console.log('[patch-9router] Applied Codex compatibility patch.');}e
     // Keep `.openclaw/state` on a named volume (the Linux VM's native filesystem) instead; the
     // rest of `.openclaw` stays bind-mounted so workspaces/config remain visible on the host.
     // Linux/VPS bind mounts are native ext4 — unchanged there (and state stays host-visible).
-    const useStateVolume = osChoice === 'macos' || osChoice === 'win';
+    const useStateVolume = osChoice === 'macos' || (osChoice === 'win' && !useWindowsHomeVolume);
     const stateVolMount = useStateVolume ? '\n      - openclaw-state:/home/node/project/.openclaw/state' : '';
     const stateVolDecl = useStateVolume ? '\n  openclaw-state:' : '';
-    const stateVolBlock = useStateVolume ? '\n\nvolumes:\n  openclaw-state:' : '';
+    const stateVolBlock = homeVolDecl || stateVolDecl ? `\n\nvolumes:${homeVolDecl}${stateVolDecl}` : '';
+    const pluginVolMount = useWindowsHomeVolume ? '' : `\n      - openclaw-plugins:/home/node/project/.openclaw/npm${extVolMount}`;
+    const pluginVolDecl = useWindowsHomeVolume ? '' : '\n  openclaw-plugins:';
     const skillLines = dockerfileSkillInstallMode === 'build' && allSkills.length > 0
       ? `\n# Install skills (ClawHub)\n${allSkills.map((skill) => `RUN openclaw skills install ${skill} --acknowledge-install-policy-warning || openclaw skills install ${skill} --acknowledge-clawhub-risk || echo "Warning: Failed to install ${skill} due to rate limits."`).join('\n')}\n`
       : '';
@@ -558,7 +569,7 @@ services:
     env_file:
       - ../../.env
 ${appEnvironmentBlock}${dependsOn}${extraHosts}    volumes:
-      - ${volumeMount}${stateVolMount}
+      - ${homeMount}${stateVolMount}
     ports:
       - "127.0.0.1:${gatewayPort}:${gatewayPort}"
 
@@ -587,7 +598,7 @@ ${indentBlock(docker9RouterEntrypointScript, 8)}
       - "127.0.0.1:${routerPort}:${routerPort}"
 
 volumes:
-  9router-data:${stateVolDecl}`;
+  9router-data:${stateVolDecl}${homeVolDecl}`;
       } else if (isLocal) {
         const ollamaModelTag = String(selectedModel || 'ollama/gemma4:e2b').replace('ollama/', '');
         compose = `name: ${multiComposeName}
@@ -599,7 +610,7 @@ services:
     env_file:
       - ../../.env
 ${appEnvironmentBlock}${dependsOn}${extraHosts}    volumes:
-      - ${volumeMount}${stateVolMount}
+      - ${homeMount}${stateVolMount}
     ports:
       - "127.0.0.1:${gatewayPort}:${gatewayPort}"
 
@@ -628,7 +639,7 @@ ${appEnvironmentBlock}${dependsOn}${extraHosts}    volumes:
       start_period: 30s
 
 volumes:
-  ollama-data:${stateVolDecl}`;
+  ollama-data:${stateVolDecl}${homeVolDecl}`;
       } else {
         compose = `name: ${multiComposeName}
 services:
@@ -639,7 +650,7 @@ services:
     env_file:
       - ../../.env
 ${appEnvironmentBlock}${extraHosts}    volumes:
-      - ${volumeMount}${stateVolMount}
+      - ${homeMount}${stateVolMount}
     ports:
       - "127.0.0.1:${gatewayPort}:${gatewayPort}"${stateVolBlock}`;
       }
@@ -655,8 +666,7 @@ services:
     depends_on:
       - 9router
 ${appEnvironmentBlock}${extraHostsBlock}\n    volumes:
-      - ${volumeMount}${stateVolMount}
-      - openclaw-plugins:/home/node/project/.openclaw/npm${extVolMount}
+      - ${homeMount}${stateVolMount}${pluginVolMount}
     ports:
       - "127.0.0.1:${gatewayPort}:${gatewayPort}"
 
@@ -685,8 +695,7 @@ ${indentBlock(docker9RouterEntrypointScript, 8)}
       - "127.0.0.1:${routerPort}:${routerPort}"
 
 volumes:
-  9router-data:
-  openclaw-plugins:${extVolDecl}${stateVolDecl}`;
+  9router-data:${pluginVolDecl}${extVolDecl}${stateVolDecl}${homeVolDecl}`;
     } else if (isLocal) {
       const ollamaModelTag = String(selectedModel || 'ollama/gemma4:e2b').replace('ollama/', '');
       compose = `name: ${singleComposeName}
@@ -702,7 +711,7 @@ ${appEnvironmentBlock}    depends_on:
 ${extraHostsBlock}\n    ports:
       - "127.0.0.1:${gatewayPort}:${gatewayPort}"
     volumes:
-      - ${volumeMount}${stateVolMount}
+      - ${homeMount}${stateVolMount}
 
   ollama:
     image: ollama/ollama:latest
@@ -729,7 +738,7 @@ ${extraHostsBlock}\n    ports:
       start_period: 30s
 
 volumes:
-  ollama-data:${stateVolDecl}`;
+  ollama-data:${stateVolDecl}${homeVolDecl}`;
     } else {
       compose = `name: ${singleComposeName}
 services:
@@ -740,7 +749,7 @@ services:
     env_file:
       - ../../.env
 ${appEnvironmentBlock}${plainSingleExtraHosts ? `${extraHostsBlock}\n` : ''}    volumes:
-      - ${volumeMount}${stateVolMount}
+      - ${homeMount}${stateVolMount}
     ports:
       - "127.0.0.1:${gatewayPort}:${gatewayPort}"${stateVolBlock}`;
     }

@@ -7,7 +7,7 @@
 *Run one command → open the dashboard → your bot is live. Windows · macOS · Linux · VPS — Docker-powered, auto-installed for you.*
 
 <p align="center">
-  <a href="https://github.com/dangthanhhung61-dotcom/openclaw-setup"><img src="https://img.shields.io/badge/SOURCE-v5.16.6-0EA5E9?style=for-the-badge" alt="Source 5.16.6" /></a>
+  <a href="https://github.com/dangthanhhung61-dotcom/openclaw-setup"><img src="https://img.shields.io/badge/SOURCE-v5.16.7-0EA5E9?style=for-the-badge" alt="Source 5.16.7" /></a>
   <a href="https://github.com/tuanminhhole/openclaw-setup?tab=MIT-1-ov-file"><img src="https://img.shields.io/badge/LICENSE-MIT-success?style=for-the-badge" alt="MIT License" /></a>
   <a href="https://www.npmjs.com/package/create-openclaw-bot"><img src="https://img.shields.io/npm/v/create-openclaw-bot?style=for-the-badge&label=CLI&color=2563EB&logo=npm&logoColor=white" alt="NPM Version" /></a>
   <a href="https://github.com/tuanminhhole/openclaw-setup/stargazers"><img src="https://img.shields.io/github/stars/tuanminhhole/openclaw-setup?style=for-the-badge&color=eab308&logo=github&logoColor=white" alt="GitHub Stars" /></a>
@@ -37,10 +37,16 @@
 
 ---
 
-## 🆕 What's New in v5.16.6
+## 🆕 What's New in v5.16.7
+
+- Fresh Windows Docker projects store the **entire** `.openclaw` home on a Linux named volume. Setup reaches the same data through a WSL link and verifies the mapping before writing config.
+- Existing bind-mounted projects retain their storage layout on update; moving their data requires a separate backed-up migration.
+- Requires Docker Desktop with WSL2 and either Windows Developer Mode or an Administrator terminal for the link. Start Docker Desktop first. Do not run `docker compose down -v` if you want to retain bot data.
+
+### Previous: v5.16.6
 
 - Fix multi-agent Zalo QR login, 9Router Authorization headers, Zalo Connect 3.1.5 listener lifecycle, and repeated DuckDuckGo installs. See the [root-cause report (Vietnamese)](docs/INCIDENTS-2026-09-18.vi.md).
-- Windows Docker projects still use bind mounts by default; affected new or existing projects require a backed-up data migration.
+- In this release, new Windows projects still used bind mounts; v5.16.7 changes that for fresh installs.
 
 ### Previous: v5.16.5
 
@@ -200,7 +206,7 @@
 
 ## 🗺️ Quick Start
 
-### 1️⃣ Method 1 — Quick install (Recommended)
+### 1️⃣ Method 1 — npm release
 
 Open your terminal and run this single command (works on macOS, Linux & Windows — needs Node.js 24 LTS):
 
@@ -209,13 +215,14 @@ npx create-openclaw-bot
 ```
 
 It downloads the wizard, starts the local server, and opens the Setup UI in your browser at **http://127.0.0.1:51789**.
+> The npm release may not include 5.16.7 yet. Use Method 2 for the Windows Docker storage fix.
 
-### 2️⃣ Method 2 — Run the newest GitHub source
+### 2️⃣ Method 2 — Run the newest GitHub source (recommended for 5.16.7)
 
 Use this if you specifically want the newest code directly from GitHub:
 
 ```bash
-npx github:tuanminhhole/openclaw-setup
+npx --yes github:dangthanhhung61-dotcom/openclaw-setup
 ```
 
 > **Git is required for this method.** Install [Git](https://git-scm.com/downloads) and make sure the `git` command works in your terminal first; otherwise npm cannot download the GitHub repository.
@@ -225,7 +232,7 @@ npx github:tuanminhhole/openclaw-setup
 For contributors who want the full source. Run each line in order:
 
 ```bash
-git clone https://github.com/tuanminhhole/openclaw-setup.git
+git clone https://github.com/dangthanhhung61-dotcom/openclaw-setup.git
 cd openclaw-setup
 npm install
 npm start
@@ -255,6 +262,7 @@ Click **Update** in the **top-right corner of the Setup interface**. It download
   OpenClaw is pinned to **2026.9.4**, which requires **Node.js 24.16.0+ (24.x)** or **26.1.0+**. Node.js 22 and 25 are not supported. The generated OpenClaw Docker image uses `node:24-slim`.
 - **Git**: Installed and available in your environment PATH.
 - **Docker Desktop** (recommended, for the bot runtime): Docker Compose V2. [Download Docker](https://www.docker.com/products/docker-desktop/).
+- **Windows + Docker**: use the WSL2 backend and enable Developer Mode or launch the installer from an Administrator terminal to create the `.openclaw` link.
 
 ---
 

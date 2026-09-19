@@ -3653,6 +3653,10 @@ async function syncDockerInfra(projectDir, force = false) {
   const gatewayPort = state.gatewayPort || 18789;
   const routerPort = state.routerPort || 20128;
   const osChoice = await resolveProjectHostOs(projectDir);
+  // Never re-point an existing Windows bind-mounted home at a new, empty volume.
+  // The storage change applies only to projects generated with the new layout.
+  const windowsHomeStorage = osChoice === 'win' && !/^\s*-\s*openclaw-home:\/home\/node\/project\/\.openclaw\s*$/m.test(compose)
+    ? 'bind' : 'volume';
 
   // Detect the single supported personal-Zalo backend from openclaw.json.
   const cfgPath = join(projectDir, '.openclaw', 'openclaw.json');
@@ -3670,6 +3674,7 @@ async function syncDockerInfra(projectDir, force = false) {
     allSkills: [],
     dockerfilePlugins: [],
     osChoice,
+    windowsHomeStorage,
     gatewayPort,
     routerPort,
     singleComposeName: composeName,
@@ -3852,7 +3857,7 @@ function parseComposeMounts(compose) {
 // Insert long-form bind mounts (idempotent) after the project's .openclaw volume line. Returns the
 // original string unchanged if the anchor is missing or a mount is already present.
 function injectMountsIntoCompose(compose, mounts) {
-  const anchor = /^(\s*-\s*\.\.\/\.\.\/\.openclaw:\/home\/node\/project\/\.openclaw)\s*$/m;
+  const anchor = /^(\s*-\s*(?:\.\.\/\.\.\/\.openclaw|openclaw-home):\/home\/node\/project\/\.openclaw)\s*$/m;
   if (!Array.isArray(mounts) || !mounts.length || !anchor.test(compose)) return compose;
   let out = compose;
   for (const m of mounts) {
@@ -3967,6 +3972,50 @@ function json(res, data, status = 200) {
   const body = JSON.stringify(data, null, 2);
   res.writeHead(status, { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' });
   res.end(body);
+}
+
+// Windows Docker Desktop's NTFS bind mount breaks OpenClaw's atomic file operations.
+// Use one Linux named volume for the whole home, with a host link for Setup's file UI.
+// This is deliberately fresh-project-only: existing projects need a backed-up migration.
+async function prepareWindowsDockerHome(projectDir) {
+  const home = join(projectDir, '.openclaw');
+  const volumeName = `oc-${slugify(basename(projectDir))}_openclaw-home`;
+  const target = join('\\\\wsl.localhost\\docker-desktop\\mnt\\docker-desktop-disk\\data\\docker\\volumes', volumeName, '_data');
+  const existing = await fsp.lstat(home).catch((e) => {
+    if (e.code === 'ENOENT') return null;
+    throw e;
+  });
+  if (existing) {
+    throw new Error(`${home} already exists. Setup will not overwrite any existing Docker or native data. Use a new project folder or migrate this one with a backup.`);
+  }
+  await fsp.mkdir(projectDir, { recursive: true });
+  const probe = join(projectDir, `.openclaw-link-probe-${process.pid}-${Date.now()}`);
+  let probeCreated = false;
+  try {
+    await fsp.symlink(projectDir, probe, 'dir');
+    probeCreated = true;
+  } catch (e) {
+    throw new Error(`Windows cannot create the .openclaw link: ${e.message}. Enable Developer Mode or run this installer from an Administrator terminal.`);
+  } finally {
+    if (probeCreated) await fsp.unlink(probe);
+  }
+  await run('docker', ['volume', 'create', volumeName]);
+  if (!existsSync(target)) {
+    throw new Error(`Docker Desktop WSL2 volume path is unavailable: ${target}. No project data was moved; do not use a Windows bind mount as a fallback.`);
+  }
+  // The Desktop WSL path is internal, so verify it really maps to THIS Docker volume.
+  const marker = `.openclaw-setup-volume-probe-${process.pid}-${Date.now()}`;
+  let markerCreated = false;
+  try {
+    await fsp.writeFile(join(target, marker), 'openclaw-setup', { flag: 'wx' });
+    markerCreated = true;
+    const check = await runCapture('docker', ['run', '--rm', '--mount', `type=volume,source=${volumeName},target=/target`, 'node:22-slim', 'test', '-f', `/target/${marker}`], { shell: false, timeout: 120000 });
+    if (check.code !== 0) throw new Error(String(check.stderr || check.stdout || 'volume path mismatch').trim());
+  } finally {
+    if (markerCreated) await fsp.unlink(join(target, marker));
+  }
+  await fsp.symlink(target, home, 'dir');
+  sendLog(`[docker] Windows OpenClaw home is stored in Linux volume ${volumeName}`);
 }
 
 async function writeCoreProject({ projectDir, osChoice, mode, gatewayPort = 18789, routerPort = 20128, userTimezone = 'Asia/Ho_Chi_Minh' }) {
@@ -5368,6 +5417,9 @@ async function installCore({ osChoice, mode, projectDir, gatewayPort = 18789, ro
     // with a clear message rather than deep inside `docker compose up`. Native mode has no
     // container, so it skips this entirely (that is much of the point of choosing it).
     if (mode !== 'native') await ensureDockerInstalled(osChoice);
+    if (mode === 'docker' && osChoice === 'win' && process.platform === 'win32') {
+      await prepareWindowsDockerHome(projectDir);
+    }
     await writeCoreProject({ projectDir, osChoice, mode, gatewayPort, routerPort, userTimezone });
     await run('npm', ['install', '-g', OPENCLAW_NPM_SPEC]);
     await run('npm', ['install', '-g', NINE_ROUTER_NPM_SPEC]);

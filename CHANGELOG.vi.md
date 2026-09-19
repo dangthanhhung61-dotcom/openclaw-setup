@@ -1,5 +1,11 @@
 # Changelog (Tiếng Việt)
 
+## [5.16.7] — 2026-09-19
+
+- Cài mới Docker Windows lưu toàn bộ `.openclaw` trong named volume Linux thay vì bind mount NTFS, tránh lỗi thao tác tệp dẫn tới `ERR_EMPTY_RESPONSE`.
+- Setup tạo liên kết Windows tới cùng volume, kiểm tra đường WSL và quyền tạo liên kết trước khi ghi cấu hình. Cần Developer Mode hoặc quyền Administrator; không hỗ trợ tự động khi Docker Desktop không dùng đường volume WSL2 đã kiểm chứng.
+- Nâng cấp project cũ giữ nguyên bind mount; không chuyển dữ liệu sang volume rỗng. Các mount ổ đĩa do người dùng cấp tiếp tục được giữ khi cập nhật Compose.
+
 ## [5.16.6] — 2026-09-19
 
 - Truyền agent sở hữu kênh vào lệnh đăng nhập QR Zalo; báo lỗi rõ khi project nhiều agent mà chưa chọn owner.

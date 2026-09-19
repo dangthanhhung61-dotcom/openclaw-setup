@@ -7,7 +7,7 @@
 *Chạy một lệnh → mở dashboard → bot lên sóng. Windows · macOS · Linux · VPS — chạy trên Docker, tự cài giúp bạn.*
 
 <p align="center">
-  <a href="https://github.com/dangthanhhung61-dotcom/openclaw-setup"><img src="https://img.shields.io/badge/SOURCE-v5.16.6-0EA5E9?style=for-the-badge" alt="Source 5.16.6" /></a>
+  <a href="https://github.com/dangthanhhung61-dotcom/openclaw-setup"><img src="https://img.shields.io/badge/SOURCE-v5.16.7-0EA5E9?style=for-the-badge" alt="Source 5.16.7" /></a>
   <a href="https://github.com/tuanminhhole/openclaw-setup?tab=MIT-1-ov-file"><img src="https://img.shields.io/badge/LICENSE-MIT-success?style=for-the-badge" alt="MIT License" /></a>
   <a href="https://www.npmjs.com/package/create-openclaw-bot"><img src="https://img.shields.io/npm/v/create-openclaw-bot?style=for-the-badge&label=CLI&color=2563EB&logo=npm&logoColor=white" alt="NPM Version" /></a>
   <a href="https://github.com/tuanminhhole/openclaw-setup/stargazers"><img src="https://img.shields.io/github/stars/tuanminhhole/openclaw-setup?style=for-the-badge&color=eab308&logo=github&logoColor=white" alt="GitHub Stars" /></a>
@@ -37,10 +37,16 @@
 
 ---
 
-## 🆕 Có gì mới trong v5.16.6
+## 🆕 Có gì mới trong v5.16.7
+
+- Project Docker Windows mới lưu **toàn bộ** `.openclaw` trong Docker named volume Linux; Setup truy cập cùng dữ liệu qua liên kết WSL. Trình cài kiểm tra đường dẫn và quyền tạo liên kết trước khi ghi cấu hình.
+- Không tự chuyển project cũ sang volume rỗng. Project dùng bind mount tiếp tục giữ cách lưu cũ khi cập nhật; muốn chuyển phải sao lưu và di chuyển riêng.
+- Cần Docker Desktop chạy WSL2 và bật Windows Developer Mode **hoặc** mở CMD/PowerShell bằng quyền Administrator. Mở Docker Desktop trước khi chạy Setup; dữ liệu nằm trong Docker volume, nên không dùng `docker compose down -v` nếu muốn giữ bot.
+
+### Trước đó: v5.16.6
 
 - Sửa đăng nhập QR Zalo cho project nhiều agent, header xác thực 9Router, vòng đời socket Zalo Connect 3.1.5 và việc cài DuckDuckGo lặp lại. [Chi tiết nguyên nhân và giới hạn bản sửa](docs/INCIDENTS-2026-09-18.vi.md).
-- Lưu ý: lỗi Docker bind-mount trên Windows cần di chuyển dữ liệu có sao lưu; bộ cài vẫn sinh bind mount cho project mới và không tự đổi volume của project cũ.
+- Lưu ý ở bản này: project Windows mới vẫn dùng bind mount; v5.16.7 thay đổi điều đó cho cài mới.
 
 ### Trước đó: v5.16.5
 
@@ -200,7 +206,7 @@
 
 ## 🗺️ Cách cài đặt nhanh nhất
 
-### 1️⃣ Cách 1 — Cài nhanh (Khuyên dùng)
+### 1️⃣ Cách 1 — Bản phát hành trên npm
 
 Mở terminal và chạy đúng một lệnh (chạy trên macOS, Linux & Windows — cần Node.js 24 LTS):
 
@@ -209,13 +215,14 @@ npx create-openclaw-bot
 ```
 
 Lệnh này tự tải wizard, chạy server và **mở giao diện Setup** trên trình duyệt tại **http://127.0.0.1:51789**.
+> Bản trên npm có thể chưa phải 5.16.7; để dùng bản sửa Docker Windows mới, chạy Cách 2 bên dưới.
 
-### 2️⃣ Cách 2 — Chạy mã mới nhất trực tiếp từ GitHub
+### 2️⃣ Cách 2 — Chạy mã mới nhất trực tiếp từ GitHub (khuyên dùng cho 5.16.7)
 
 Dùng cách này nếu bạn muốn lấy code mới nhất trực tiếp từ GitHub:
 
 ```bash
-npx github:tuanminhhole/openclaw-setup
+npx --yes github:dangthanhhung61-dotcom/openclaw-setup
 ```
 
 > **Cách này bắt buộc máy phải cài Git.** Hãy cài [Git](https://git-scm.com/downloads) và kiểm tra lệnh `git` chạy được trong terminal trước; nếu thiếu Git, npm không thể tải repository từ GitHub.
@@ -225,7 +232,7 @@ npx github:tuanminhhole/openclaw-setup
 Dành cho người muốn lấy full source. Chạy lần lượt từng dòng:
 
 ```bash
-git clone https://github.com/tuanminhhole/openclaw-setup.git
+git clone https://github.com/dangthanhhung61-dotcom/openclaw-setup.git
 cd openclaw-setup
 npm install
 npm start
@@ -255,6 +262,7 @@ Bấm nút **Cập nhật** ở **góc trên bên phải giao diện Setup**. H�
   OpenClaw được ghim ở **2026.9.4**, yêu cầu **Node.js 24.16.0+ (nhánh 24)** hoặc **26.1.0+**. Không hỗ trợ Node.js 22 và 25. Image Docker OpenClaw được sinh ra dùng `node:24-slim`.
 - **Git**: Đã cài đặt và có trong biến môi trường PATH.
 - **Docker Desktop** (khuyên dùng, để chạy bot): hỗ trợ Docker Compose V2. [Tải Docker](https://www.docker.com/products/docker-desktop/).
+- **Windows + Docker**: dùng backend WSL2; bật Developer Mode hoặc chạy terminal cài đặt bằng quyền Administrator để tạo liên kết `.openclaw` tới volume Linux.
 
 ---
 

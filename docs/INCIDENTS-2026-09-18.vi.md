@@ -4,7 +4,7 @@ Các kết luận dưới đây dựa trên log, cấu hình đã lược bỏ b
 
 | Triệu chứng | Nguyên nhân gốc rễ | Bản sửa trong repository |
 | --- | --- | --- |
-| Giao diện `ERR_EMPTY_RESPONSE` / gateway không mở | OpenClaw mở rồi đổi tên tệp trên thư mục `.openclaw` bind-mount từ Windows. Docker Desktop trả `ENOENT` khi `fstat` descriptor cũ; cùng thao tác trên filesystem Linux chạy bình thường. | Không tự đổi volume của project cũ vì có thể mất liên kết với dữ liệu hoặc làm Setup không tìm được cấu hình. Xem hướng dẫn di chuyển bên dưới. |
+| Giao diện `ERR_EMPTY_RESPONSE` / gateway không mở | OpenClaw mở rồi đổi tên tệp trên thư mục `.openclaw` bind-mount từ Windows. Docker Desktop trả `ENOENT` khi `fstat` descriptor cũ; cùng thao tác trên filesystem Linux chạy bình thường. | Từ bộ cài 5.16.7, project Docker Windows **mới** lưu toàn bộ home trong named volume Linux. Project cũ không bị tự chuyển; xem lưu ý bên dưới. |
 | Đăng nhập Zalo không hiện QR, tiến trình thoát 1 | Project nhiều agent nhưng lệnh `channels login` của Setup không truyền agent sở hữu kênh; OpenClaw từ chối discovery khi không có owner rõ ràng. | Setup suy ra agent từ lựa chọn/binding/System Agent, yêu cầu chọn khi còn mơ hồ, và truyền `--agent` bằng argv (không ghép chuỗi shell). |
 | `9router/smart-route`: `Provider 9router has auth issue` | 9Router có API key hợp lệ, nhưng cấu hình provider của OpenClaw chưa bật Bearer Authorization; API trả 401 “API key required for remote API access”. | Provider mới khai `auth: api-key`, `authHeader: true`. Migration chỉ điền hai trường nếu còn thiếu, không đổi key hoặc tùy chọn xác thực do người dùng tự đặt. |
 | Zalo đã đăng nhập nhưng `/readyz` trả 503, `Already started` | Monitor cũ kết thúc mà không đóng WebSocket/invalidate API cache. Monitor mới tái sử dụng listener đang chạy, không nhận sự kiện `connected` mới và bị health monitor khởi động lại. | Bản vá có checksum cho đúng bundle `openclaw-zalo-connect` 3.1.5: dừng socket cũ, bỏ cache đúng chủ sở hữu, chặn callback trễ và chỉ báo connected sau sự kiện thật. Bản khác không bị sửa. |
@@ -16,7 +16,9 @@ Trên máy kiểm tra, sau khi sửa và khởi động lại đúng container O
 
 ## Lưu ý riêng cho Windows Docker
 
-Bản sửa `ERR_EMPTY_RESPONSE` trên máy kiểm tra đã chuyển toàn bộ OpenClaw home sang Docker named volume Linux và giữ Setup nhìn thấy dữ liệu qua đường dẫn WSL. Đây là **thao tác di chuyển dữ liệu có sao lưu**, không phải thay đổi Compose an toàn cho mọi máy. Repository **vẫn sinh Windows bind mount cho project mới và chưa tự động di chuyển project cũ**; cả hai trường hợp cần đánh giá/di chuyển thủ công nếu gặp lỗi filesystem này. Không thay bind mount bằng volume trống hoặc xóa volume cũ nếu chưa kiểm kê dữ liệu, sao lưu và xác minh đường dẫn Setup. Khi dùng liên kết WSL, cần mở Docker Desktop trước OpenClaw và chạy các lệnh OpenClaw ghi cấu hình bên trong container Linux.
+Trên máy kiểm tra, cách khắc phục là chuyển toàn bộ OpenClaw home sang Docker named volume Linux và giữ Setup nhìn thấy dữ liệu qua liên kết WSL. Từ **5.16.7**, bộ cài áp dụng cách lưu này cho **project Docker Windows mới** sau khi kiểm tra quyền tạo liên kết và xác minh đường dẫn WSL thực sự trỏ vào đúng volume. Cần Docker Desktop WSL2 đang chạy và bật Developer Mode hoặc chạy CMD/PowerShell bằng quyền Administrator. Nếu đường dẫn Docker Desktop thay đổi, bộ cài dừng với thông báo thay vì quay lại bind mount lỗi.
+
+Project cũ **không tự di chuyển** khi cập nhật; Compose vẫn giữ bind mount cũ. Muốn chuyển project đã có dữ liệu phải kiểm kê, sao lưu và di chuyển riêng. Không thay bind mount bằng volume trống hay xóa volume cũ. Dữ liệu project mới nằm trong Docker volume: không chạy `docker compose down -v` nếu muốn giữ lại. Khi dùng liên kết WSL, cần mở Docker Desktop trước Setup và chạy lệnh OpenClaw ghi cấu hình bên trong container Linux.
 
 ## Phạm vi bản vá Zalo
 

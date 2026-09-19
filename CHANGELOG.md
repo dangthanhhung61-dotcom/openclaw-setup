@@ -1,5 +1,11 @@
 # Changelog (English)
 
+## [5.16.7] — 2026-09-19
+
+- Fresh Windows Docker installs place the entire `.openclaw` home on a Linux named volume instead of an NTFS bind mount, avoiding the file-operation failure behind `ERR_EMPTY_RESPONSE`.
+- Setup links to that same volume from Windows and validates the WSL path and link permission before writing config. Developer Mode or Administrator rights are required; unsupported Docker Desktop layouts fail safely.
+- Existing projects keep their bind mount on upgrade; data is never switched to an empty volume. User-granted drive mounts remain preserved across Compose updates.
+
 ## [5.16.6] — 2026-09-19
 
 - Pass the owning agent to Zalo QR login, including clear handling of ambiguous multi-agent projects.
