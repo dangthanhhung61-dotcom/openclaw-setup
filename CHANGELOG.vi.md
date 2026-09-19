@@ -1,5 +1,10 @@
 # Changelog (Tiếng Việt)
 
+## [5.16.8] — 2026-09-19
+
+- Gỡ thông tin liên hệ cá nhân Zalo/Facebook/Telegram và phần ủng hộ khỏi giao diện Setup; giữ nguyên các chức năng bot Zalo, Facebook Messenger và Telegram.
+- Loại ảnh QR BVBank/MoMo khỏi cả mã nguồn và gói cài GitHub. Bản sao lưu đã tạo trước đó được giữ nguyên.
+
 ## [5.16.7] — 2026-09-19
 
 - Cài mới Docker Windows lưu toàn bộ `.openclaw` trong named volume Linux thay vì bind mount NTFS, tránh lỗi thao tác tệp dẫn tới `ERR_EMPTY_RESPONSE`.

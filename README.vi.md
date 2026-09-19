@@ -7,7 +7,7 @@
 *Chạy một lệnh → mở dashboard → bot lên sóng. Windows · macOS · Linux · VPS — chạy trên Docker, tự cài giúp bạn.*
 
 <p align="center">
-  <a href="https://github.com/dangthanhhung61-dotcom/openclaw-setup"><img src="https://img.shields.io/badge/SOURCE-v5.16.7-0EA5E9?style=for-the-badge" alt="Source 5.16.7" /></a>
+  <a href="https://github.com/dangthanhhung61-dotcom/openclaw-setup"><img src="https://img.shields.io/badge/SOURCE-v5.16.8-0EA5E9?style=for-the-badge" alt="Source 5.16.8" /></a>
   <a href="https://github.com/tuanminhhole/openclaw-setup?tab=MIT-1-ov-file"><img src="https://img.shields.io/badge/LICENSE-MIT-success?style=for-the-badge" alt="MIT License" /></a>
   <a href="https://www.npmjs.com/package/create-openclaw-bot"><img src="https://img.shields.io/npm/v/create-openclaw-bot?style=for-the-badge&label=CLI&color=2563EB&logo=npm&logoColor=white" alt="NPM Version" /></a>
   <a href="https://github.com/tuanminhhole/openclaw-setup/stargazers"><img src="https://img.shields.io/github/stars/tuanminhhole/openclaw-setup?style=for-the-badge&color=eab308&logo=github&logoColor=white" alt="GitHub Stars" /></a>
@@ -37,7 +37,11 @@
 
 ---
 
-## 🆕 Có gì mới trong v5.16.7
+## 🆕 Có gì mới trong v5.16.8
+
+- Gỡ liên kết liên hệ cá nhân Zalo/Facebook/Telegram, phần mời ủng hộ và ảnh QR ngân hàng/MoMo khỏi bộ cài. Chức năng kết nối bot trên các kênh vẫn giữ nguyên.
+
+### Trước đó: v5.16.7
 
 - Project Docker Windows mới lưu **toàn bộ** `.openclaw` trong Docker named volume Linux; Setup truy cập cùng dữ liệu qua liên kết WSL. Trình cài kiểm tra đường dẫn và quyền tạo liên kết trước khi ghi cấu hình.
 - Không tự chuyển project cũ sang volume rỗng. Project dùng bind mount tiếp tục giữ cách lưu cũ khi cập nhật; muốn chuyển phải sao lưu và di chuyển riêng.
@@ -215,9 +219,9 @@ npx create-openclaw-bot
 ```
 
 Lệnh này tự tải wizard, chạy server và **mở giao diện Setup** trên trình duyệt tại **http://127.0.0.1:51789**.
-> Bản trên npm có thể chưa phải 5.16.7; để dùng bản sửa Docker Windows mới, chạy Cách 2 bên dưới.
+> Bản trên npm có thể chưa phải 5.16.8; để dùng bản GitHub mới nhất, chạy Cách 2 bên dưới.
 
-### 2️⃣ Cách 2 — Chạy mã mới nhất trực tiếp từ GitHub (khuyên dùng cho 5.16.7)
+### 2️⃣ Cách 2 — Chạy mã mới nhất trực tiếp từ GitHub (khuyên dùng cho 5.16.8)
 
 Dùng cách này nếu bạn muốn lấy code mới nhất trực tiếp từ GitHub:
 

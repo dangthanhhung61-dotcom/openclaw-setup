@@ -1,6 +1,6 @@
 {
   "name": "create-openclaw-bot",
-  "version": "5.16.7",
+  "version": "5.16.8",
   "description": "Interactive CLI installer for OpenClaw Bot",
   "main": "dist/cli.js",
   "bin": {
@@ -13,7 +13,7 @@
     "build": "node docs_dev/tests/build.mjs --deploy",
     "dev": "node docs_dev/tests/build.mjs --deploy --watch",
     "start": "node dist/cli.js",
-    "test": "node --test tests/docker-compose-windows.test.mjs tests/runtime-config.test.mjs tests/zalo-login-agent.test.mjs tests/zalo-lifecycle-patch.test.mjs",
+    "test": "node --test tests/contact-removal.test.mjs tests/docker-compose-windows.test.mjs tests/runtime-config.test.mjs tests/zalo-login-agent.test.mjs tests/zalo-lifecycle-patch.test.mjs",
     "bump": "node docs_dev/tests/bump-version.mjs",
     "release": "node docs_dev/scripts/update.mjs"
   },

@@ -186,5 +186,5 @@ test('edited source and distributed files remain identical', () => {
   for (const path of ['setup/shared/common-gen.js', 'setup/shared/docker-gen.js', 'server/local-server.js']) {
     assert.equal(source(`src/${path}`).replace(/\r\n/g, '\n'), source(`dist/${path}`).replace(/\r\n/g, '\n'), path);
   }
-  assert.equal(JSON.parse(source('package.json')).version, '5.16.7');
+  assert.equal(JSON.parse(source('package.json')).version, '5.16.8');
 });

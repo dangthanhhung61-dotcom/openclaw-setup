@@ -1,5 +1,10 @@
 # Changelog (English)
 
+## [5.16.8] — 2026-09-19
+
+- Removed personal Zalo/Facebook/Telegram links and donation controls from Setup while retaining all bot channel features.
+- Removed BVBank/MoMo QR images from the source and GitHub installer package. The previously requested backup remains untouched.
+
 ## [5.16.7] — 2026-09-19
 
 - Fresh Windows Docker installs place the entire `.openclaw` home on a Linux named volume instead of an NTFS bind mount, avoiding the file-operation failure behind `ERR_EMPTY_RESPONSE`.

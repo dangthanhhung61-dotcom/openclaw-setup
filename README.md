@@ -7,7 +7,7 @@
 *Run one command → open the dashboard → your bot is live. Windows · macOS · Linux · VPS — Docker-powered, auto-installed for you.*
 
 <p align="center">
-  <a href="https://github.com/dangthanhhung61-dotcom/openclaw-setup"><img src="https://img.shields.io/badge/SOURCE-v5.16.7-0EA5E9?style=for-the-badge" alt="Source 5.16.7" /></a>
+  <a href="https://github.com/dangthanhhung61-dotcom/openclaw-setup"><img src="https://img.shields.io/badge/SOURCE-v5.16.8-0EA5E9?style=for-the-badge" alt="Source 5.16.8" /></a>
   <a href="https://github.com/tuanminhhole/openclaw-setup?tab=MIT-1-ov-file"><img src="https://img.shields.io/badge/LICENSE-MIT-success?style=for-the-badge" alt="MIT License" /></a>
   <a href="https://www.npmjs.com/package/create-openclaw-bot"><img src="https://img.shields.io/npm/v/create-openclaw-bot?style=for-the-badge&label=CLI&color=2563EB&logo=npm&logoColor=white" alt="NPM Version" /></a>
   <a href="https://github.com/tuanminhhole/openclaw-setup/stargazers"><img src="https://img.shields.io/github/stars/tuanminhhole/openclaw-setup?style=for-the-badge&color=eab308&logo=github&logoColor=white" alt="GitHub Stars" /></a>
@@ -37,7 +37,11 @@
 
 ---
 
-## 🆕 What's New in v5.16.7
+## 🆕 What's New in v5.16.8
+
+- Removed personal Zalo/Facebook/Telegram contact links, donation prompts, and bank/MoMo QR images from the installer. Bot channel support is unchanged.
+
+### Previous: v5.16.7
 
 - Fresh Windows Docker projects store the **entire** `.openclaw` home on a Linux named volume. Setup reaches the same data through a WSL link and verifies the mapping before writing config.
 - Existing bind-mounted projects retain their storage layout on update; moving their data requires a separate backed-up migration.
@@ -215,9 +219,9 @@ npx create-openclaw-bot
 ```
 
 It downloads the wizard, starts the local server, and opens the Setup UI in your browser at **http://127.0.0.1:51789**.
-> The npm release may not include 5.16.7 yet. Use Method 2 for the Windows Docker storage fix.
+> The npm release may not include 5.16.8 yet. Use Method 2 for the latest GitHub installer.
 
-### 2️⃣ Method 2 — Run the newest GitHub source (recommended for 5.16.7)
+### 2️⃣ Method 2 — Run the newest GitHub source (recommended for 5.16.8)
 
 Use this if you specifically want the newest code directly from GitHub:
 
