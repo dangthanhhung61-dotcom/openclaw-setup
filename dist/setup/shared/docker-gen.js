@@ -209,6 +209,9 @@ if(touched){console.log('[patch-9router] Applied Codex compatibility patch.');}e
   // — tha thieu mot default con hon gieo key lam gateway tu choi boot.
   const contextDefaultsScript = `const fs=require('fs'),path=require('path');const p=path.join(process.cwd(),'.openclaw','openclaw.json');if(fs.existsSync(p)){const c=JSON.parse(fs.readFileSync(p,'utf8'));let ch=false;c.skills=c.skills||{};c.skills.workshop=c.skills.workshop||{};if(!c.skills.workshop.approvalPolicy){c.skills.workshop.approvalPolicy='auto';ch=true;}if(c.browser&&c.browser.enabled!==false){c.tools=c.tools||{};const dn=Array.isArray(c.tools.deny)?c.tools.deny:[];if(!dn.includes('browser')){dn.push('browser');c.tools.deny=dn;ch=true;}}let ocMajorMinor=0;try{const v=String(require('child_process').execSync('openclaw --version',{stdio:['ignore','pipe','ignore']})).match(/(\\d{4})\\.(\\d+)/);if(v)ocMajorMinor=Number(v[1])*100+Number(v[2]);}catch(e){}const d=(c.agents&&c.agents.defaults)?c.agents.defaults:null;if(d){if(d.imageMaxDimensionPx===undefined){d.imageMaxDimensionPx=1024;ch=true;}if(d.imageQuality===undefined){d.imageQuality='efficient';ch=true;}if(ocMajorMinor&&ocMajorMinor<202608){d.contextLimits=d.contextLimits||{};if(d.contextLimits.toolResultMaxChars===undefined){d.contextLimits.toolResultMaxChars=12000;ch=true;}}else if(ocMajorMinor>=202608&&d.contextLimits&&d.contextLimits.toolResultMaxChars!==undefined){delete d.contextLimits.toolResultMaxChars;ch=true;}}if(ocMajorMinor>=202608){const ag=c.agents||{};const nEntries=(Array.isArray(ag.list)?ag.list.length:0)+(ag.entries&&typeof ag.entries==='object'?Object.keys(ag.entries).length:0);if(nEntries>1&&ag.ownership!=='explicit'){ag.ownership='explicit';c.agents=ag;ch=true;}try{const agRoot=path.join(process.cwd(),'.openclaw','agents');for(const id of fs.readdirSync(agRoot)){const sf=path.join(agRoot,id,'sessions','sessions.json');if(fs.existsSync(sf)){fs.renameSync(sf,sf+'.bak-legacy-'+Date.now());console.log('[migrate] parked legacy session store '+sf);}}}catch(e){}if(c.commands&&c.commands.ownerDisplay!==undefined){delete c.commands.ownerDisplay;ch=true;}if(c.plugins&&c.plugins.bundledDiscovery!==undefined){delete c.plugins.bundledDiscovery;ch=true;}if(Array.isArray(ag.list)){ag.entries=(ag.entries&&typeof ag.entries==='object'&&!Array.isArray(ag.entries))?ag.entries:{};for(const a of ag.list){if(a&&a.id&&!ag.entries[a.id]){const{id:_aid,...rest}=a;ag.entries[_aid]=rest;}}delete ag.list;c.agents=ag;ch=true;console.log('[migrate] moved agents.list into agents.entries');}try{const ea=path.join(process.cwd(),'.openclaw','exec-approvals.json');if(fs.existsSync(ea)){fs.renameSync(ea,ea+'.bak-legacy-'+Date.now());console.log('[migrate] parked legacy exec approvals '+ea);}}catch(e){}}const pr=c.models&&c.models.providers&&c.models.providers['9router'];if(pr&&Array.isArray(pr.models)){for(const m of pr.models){if(m&&m.id==='smart-route'&&(m.contextWindow===200000||m.contextWindow===131072)){m.contextWindow=1048576;ch=true;}}}if(ch)fs.writeFileSync(p,JSON.stringify(c,null,2));}`;
 
+  // Existing installs keep user-selected auth settings; only absent 9Router defaults are added.
+  const routerAuthDefaultsScript = "(function(){const fs=require('fs'),path=require('path'),p=path.join(process.cwd(),'.openclaw','openclaw.json');if(!fs.existsSync(p))return;const c=JSON.parse(fs.readFileSync(p,'utf8'));const r=c.models?.providers?.['9router'];if(!r)return;let changed=false;if(r.auth===undefined){r.auth='api-key';changed=true;}if(r.authHeader===undefined){r.authHeader=true;changed=true;}if(changed)fs.writeFileSync(p,JSON.stringify(c,null,2));})();";
+
   function buildDockerArtifacts(options) {
     const {
       openClawNpmSpec,
@@ -374,10 +377,11 @@ if(touched){console.log('[patch-9router] Applied Codex compatibility patch.');}e
     if (zaloBackend === 'zalo-connect') {
       // ZaloConnect install from ClawHub (latest). ensure_plugin skips when extensions/zalo-connect
       // already exists, so restarts never re-download; the "Update" button in the dashboard fetches
-      // newer versions. No dist patching, no mentions.js, no watchdog: sticker/mention/reaction are
-      // native ZaloConnect actions.
+      // newer versions. Patch only the audited 3.1.5 dist bundle; unknown versions stay untouched.
+      // Sticker/mention/reaction remain native ZaloConnect actions.
       const zaloConnectSpec = common.ZALO_CONNECT_PLUGIN_SPEC || 'clawhub:openclaw-zalo-connect';
       runtimeParts.push(`ensure_plugin zalo-connect "${zaloConnectSpec}"`);
+      runtimeParts.push(`node - <<'NODE'\n${common.buildZaloLifecyclePatchScript()}\nNODE`);
       // Backfill the inbound-message ack reaction for projects created before it was
       // seeded. Kept out of the shared migration because zalo-connect reads the GLOBAL
       // messages.ackReaction, and that same key also feeds Telegram/Discord/Slack/
@@ -395,6 +399,7 @@ if(touched){console.log('[patch-9router] Applied Codex compatibility patch.');}e
     runtimeParts.push('if [ -d "$OPENCLAW_HOME/extensions/memory-tencentdb" ] || openclaw plugins list 2>/dev/null | grep -q memory-tencentdb; then openclaw plugins uninstall memory-tencentdb --force 2>/dev/null || true; fi');
     // Backfill skill-authoring + context defaults for configs from an older setup (see above).
     runtimeParts.push(`node - <<'NODE'\n${contextDefaultsScript}\nNODE`);
+    runtimeParts.push(`node - <<'NODE'\n${routerAuthDefaultsScript}\nNODE`);
     runtimeParts.push(`node - <<'NODE'\n${agentsGuidanceScript}\nNODE`);
     // browser-tool.js is a CDP client only — it has no code to launch a browser, so it
     // needs something listening on a debug port. On a desktop that is the operator's own
@@ -474,7 +479,15 @@ if(touched){console.log('[patch-9router] Applied Codex compatibility patch.');}e
     // Cai o day, truoc gateway run, dung lenh + co ma chinh gateway goi y; `yes |` cho cau hoi
     // consent; loi khong chan boot (|| true) — thieu web search chi la mat mot tool phu.
     runtimeParts.push([
-      'if grep -q \'"duckduckgo"\' "$OPENCLAW_HOME/openclaw.json" 2>/dev/null && [ ! -d "$OPENCLAW_HOME/extensions/duckduckgo" ]; then',
+      // npm-managed plugins live under npm/projects, not extensions/.
+      'duckduckgo_installed() {',
+      '  [ -f "$OPENCLAW_HOME/extensions/duckduckgo/package.json" ] && return 0',
+      '  for manifest in "$OPENCLAW_HOME"/npm/projects/*/node_modules/@openclaw/duckduckgo-plugin/package.json; do',
+      '    [ -f "$manifest" ] && return 0',
+      '  done',
+      '  return 1',
+      '}',
+      'if grep -q \'"duckduckgo"\' "$OPENCLAW_HOME/openclaw.json" 2>/dev/null && ! duckduckgo_installed; then',
       '  echo "[entrypoint] installing external duckduckgo plugin (openclaw >=2026.8 unbundled it)"',
       '  yes | openclaw plugins install @openclaw/duckduckgo-plugin --accept-capabilities || true',
       'fi',
@@ -752,6 +765,7 @@ ${appEnvironmentBlock}${plainSingleExtraHosts ? `${extraHostsBlock}\n` : ''}    
     buildGatewayPatchCmd,
     buildDockerArtifacts,
     contextDefaultsScript,
+    routerAuthDefaultsScript,
   };
 
 })(typeof globalThis !== 'undefined' ? globalThis : {});

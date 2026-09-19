@@ -15,9 +15,9 @@ function loadSharedModule(modulePath, globalName) {
 }
 const { buildWorkspaceFileMap, buildCronjobSkillMd, buildInfographicGeneratorSkillMd, buildInfographicGeneratorJs } = loadSharedModule('../setup/shared/workspace-gen.js', '__openclawWorkspace');
 const { buildOpenclawJson, buildEnvFileContent, buildExecApprovalsJson, buildZaloConnectChannelConfig } = loadSharedModule('../setup/shared/bot-config-gen.js', '__openclawBotConfig');
-const { buildDockerArtifacts, contextDefaultsScript } = loadSharedModule('../setup/shared/docker-gen.js', '__openclawDockerGen');
+const { buildDockerArtifacts, contextDefaultsScript, routerAuthDefaultsScript } = loadSharedModule('../setup/shared/docker-gen.js', '__openclawDockerGen');
 const { HOST_UI_PS1, HOST_UI_PS1_VERSION } = loadSharedModule('../setup/shared/host-ui-ps1.js', '__openclawHostUiPs1');
-const { OPENCLAW_NPM_SPEC, NINE_ROUTER_NPM_SPEC, ZALO_CHANNEL_ID, ZALO_PLUGIN_ID, ZALO_CONNECT_VERSION, ZALO_CONNECT_PLUGIN_SPEC, build9RouterProviderConfig, get9RouterBaseUrl } = loadSharedModule('../setup/shared/common-gen.js', '__openclawCommon');
+const { OPENCLAW_NPM_SPEC, NINE_ROUTER_NPM_SPEC, ZALO_CHANNEL_ID, ZALO_PLUGIN_ID, ZALO_CONNECT_VERSION, ZALO_CONNECT_PLUGIN_SPEC, buildZaloLifecyclePatchScript, build9RouterProviderConfig, get9RouterBaseUrl } = loadSharedModule('../setup/shared/common-gen.js', '__openclawCommon');
 const dataExport = loadSharedModule('../setup/data/index.js', '__openclawData');
 
 // Chrome 136+ ignores --remote-debugging-port when --user-data-dir is the default profile
@@ -2412,7 +2412,17 @@ async function startZaloLogin(projectDir, agentId = "") {
   const binding = (cfg.bindings || []).find((b) =>
     (!agentId || b.agentId === agentId) && b.match?.channel === "zalo-connect"
   );
-  return startZaloConnectLogin(projectDir, binding?.match?.accountId || "default");
+  const agentIds = cfg.agents?.entries && typeof cfg.agents.entries === 'object' && !Array.isArray(cfg.agents.entries)
+    ? Object.keys(cfg.agents.entries)
+    : (cfg.agents?.list || []).map((agent) => agent.id).filter(Boolean);
+  const loginAgentId = agentId || binding?.agentId || cfg.agents?.defaults?.systemAgent?.agentId || (agentIds.length === 1 ? agentIds[0] : '');
+  if (!loginAgentId && agentIds.length > 1) {
+    throw httpError(400, 'Choose an agent before starting Zalo login.');
+  }
+  if (loginAgentId && agentIds.length && !agentIds.includes(loginAgentId)) {
+    throw httpError(400, 'The selected Zalo login agent is not configured.');
+  }
+  return startZaloConnectLogin(projectDir, binding?.match?.accountId || "default", loginAgentId);
 }
 
 // ── OpenClaw Zalo Connect QR login (new projects) ────────────────────────────────────────────
@@ -2422,7 +2432,7 @@ async function startZaloLogin(projectDir, agentId = "") {
 // the UI modal as a data URL ([zalo-connect:qr] log tag). Reconnect NEVER reinstalls the
 // plugin — install runs only when extensions/zalo-connect is absent, and always with the
 // pinned spec (never `latest`).
-async function startZaloConnectLogin(projectDir, accountId = 'default') {
+async function startZaloConnectLogin(projectDir, accountId = 'default', agentId = '') {
   if (zaloLoginInFlight) {
     return { message: 'Zalo login is already running. Keep this modal open...' };
   }
@@ -2490,7 +2500,10 @@ async function startZaloConnectLogin(projectDir, accountId = 'default') {
   }
 
   sendLog('[zalo-connect] Generating Zalo QR. The image will appear automatically.');
-  const loginCmd = `cd /home/node/project && openclaw channels login --channel zalo-connect --account ${accountId} --verbose`;
+  // Multi-agent discovery requires an explicit owner. Use argv for both runtimes
+  // so account/agent ids are never interpreted as shell commands.
+  const loginArgs = ['channels', 'login', '--channel', 'zalo-connect', '--account', accountId,
+    ...(agentId ? ['--agent', agentId] : []), '--verbose'];
   let qrSent = false;
   let loginDone = false;
 
@@ -2534,8 +2547,8 @@ async function startZaloConnectLogin(projectDir, accountId = 'default') {
     attempt++;
     if (attempt > 1) sendLog(`[zalo-connect] Retry ${attempt}/${MAX_ATTEMPTS}...`);
     const child = native
-      ? spawn(resolveBinPath('openclaw'), ['channels', 'login', '--channel', 'zalo-connect', '--account', accountId, '--verbose'], { cwd: projectDir, shell: false, windowsHide: true, env: { ...process.env, ...nativeEnv(projectDir) } })
-      : spawn('docker', ['exec', botContainer, 'sh', '-lc', loginCmd], { cwd: projectDir, shell: false, windowsHide: true });
+      ? spawn(resolveBinPath('openclaw'), loginArgs, { cwd: projectDir, shell: false, windowsHide: true, env: { ...process.env, ...nativeEnv(projectDir) } })
+      : spawn('docker', ['exec', '-w', '/home/node/project', botContainer, 'openclaw', ...loginArgs], { cwd: projectDir, shell: false, windowsHide: true });
     zaloLoginChild = child;
     child.stdout.on('data', (d) => String(d).split(/\r?\n/).filter(Boolean).forEach(handleLine));
     child.stderr.on('data', (d) => String(d).split(/\r?\n/).filter(Boolean).forEach(handleLine));
@@ -2998,7 +3011,7 @@ async function ocDaemon(projectDir, verb, extraArgs = []) {
  * migrate first, then boot on the upgraded config.
  */
 async function runNativeConfigMigrations(projectDir) {
-  const res = await runCapture(process.execPath, ['-e', contextDefaultsScript], {
+  const res = await runCapture(process.execPath, ['-e', contextDefaultsScript + '\n' + routerAuthDefaultsScript], {
     cwd: projectDir,
     env: nativeEnv(projectDir),
     shell: false,
@@ -3319,6 +3332,13 @@ async function ensureNativePlugins(projectDir, { restart = false } = {}) {
     for (const line of text.split(/\r?\n/).map((l) => l.trimEnd()).filter(Boolean)) sendLog(`[native] ${line}`);
     if (existsSync(dir) || /installed plugin/i.test(text)) installed.push(id);
     else sendLog(`[native] WARNING: could not install plugin ${id} — the bot will run without it.`);
+  }
+  if (wanted.has(ZALO_PLUGIN_ID)) {
+    const patch = await runCapture(process.execPath, ['-e', buildZaloLifecyclePatchScript()], {
+      cwd: projectDir, env: nativeEnv(projectDir), shell: false,
+    });
+    if (patch.code !== 0) sendLog('[native] Zalo lifecycle patch failed; check the local plugin installation.');
+    else sendLog(String(patch.stdout || '').trim());
   }
   if (installed.length && restart) {
     sendLog(`[native] Restarting gateway to load: ${installed.join(', ')}`);
@@ -6228,6 +6248,11 @@ async function installFeature(projectDir, agentId, kind, id) {
         if (out) for (const line of `${out.stdout}\n${out.stderr}`.split(/\r?\n/).filter(Boolean)) sendLog(`[zalo-connect] ${line}`);
         const okDir = existsSync(join(projectDir, '.openclaw', 'extensions', 'zalo-connect'));
         if (out.code !== 0 && !okDir) throw new Error(out.stderr || out.stdout || 'Failed to install zalo-connect.');
+        const patch = await runCapture(process.execPath, ['-e', buildZaloLifecyclePatchScript()], {
+          cwd: projectDir, env: nativeEnv(projectDir), shell: false,
+        });
+        if (patch.code !== 0) throw new Error('Zalo lifecycle patch failed after native plugin update.');
+        sendLog(String(patch.stdout || '').trim());
       } else if (composeDir) {
         const botContainer = getBotContainerName(projectDir);
         sendLog(`[zalo-connect] Installing/updating ${ZALO_CONNECT_PLUGIN_SPEC} inside ${botContainer}...`);
@@ -6236,6 +6261,10 @@ async function installFeature(projectDir, agentId, kind, id) {
         if (out) for (const line of `${out.stdout}\n${out.stderr}`.split(/\r?\n/).filter(Boolean)) sendLog(`[zalo-connect] ${line}`);
         const okDir = existsSync(join(projectDir, '.openclaw', 'extensions', 'zalo-connect'));
         if (out.code !== 0 && !okDir) throw new Error(out.stderr || out.stdout || 'Failed to install zalo-connect.');
+        const patch = await runCapture('docker', ['exec', '-w', '/home/node/project', botContainer,
+          'node', '-e', buildZaloLifecyclePatchScript()], { cwd: projectDir, shell: false });
+        if (patch.code !== 0) throw new Error('Zalo lifecycle patch failed after Docker plugin update.');
+        sendLog(String(patch.stdout || '').trim());
       }
       const cfgPath = join(projectDir, '.openclaw', 'openclaw.json');
       if (existsSync(cfgPath)) {

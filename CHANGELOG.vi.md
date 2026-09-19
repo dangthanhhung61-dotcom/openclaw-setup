@@ -1,5 +1,13 @@
 # Changelog (Tiếng Việt)
 
+## [5.16.6] — 2026-09-19
+
+- Truyền agent sở hữu kênh vào lệnh đăng nhập QR Zalo; báo lỗi rõ khi project nhiều agent mà chưa chọn owner.
+- Gửi Bearer Authorization khi OpenClaw gọi 9Router; chỉ backfill trường xác thực còn thiếu, giữ nguyên API key.
+- Vá vòng đời listener Zalo Connect đúng bản 3.1.5 theo checksum, có sao lưu và bỏ qua build không nhận diện được.
+- Nhận diện DuckDuckGo do npm quản lý để không cài lại mỗi lần khởi động Docker.
+- Ghi rõ nguyên nhân `ERR_EMPTY_RESPONSE` trên Windows bind mount và giới hạn di chuyển dữ liệu trong [báo cáo sự cố](docs/INCIDENTS-2026-09-18.vi.md). Không tự đổi volume của project cũ.
+
 
 ## [5.16.5] — 2026-09-03
 

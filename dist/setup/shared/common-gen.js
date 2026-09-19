@@ -256,6 +256,51 @@ If setup reported a plugin install error, run this after the bot is running:
     return JSON.stringify(buildAuthProfilesJson(options), null, 2);
   }
 
+  // Exact, checksum-guarded delta for the upstream Zalo Connect 3.1.5 bundle.
+  const ZALO_LIFECYCLE_PATCH = JSON.parse(Buffer.from('WyJkaXN0L2luZGV4LmpzIiwiNGQ1YzNkNTQ0YjEwNjBkZTQzNjFjYzRkODEzZWQ1YWI0YTkwNmQ1ZjdjZDQ1M2U1MDBiZDlmMTY0ZDQyOWM1NiIsIjVlZGQ1NmE4NThhNGMwNDAxODUwYTI2ZjdiMzBmMjk1YTMyMGU2MjU3YjliODU0MDYyY2MxMzlmNjkwNzJkZjUiLFtbNjM2MDMsMCxbIiAgbGV0IGxpc3RlbmVyQXBpID0gbnVsbDsiXV0sWzYzNzgxLDAsWyIgIGNvbnN0IHJlbGVhc2VMaXN0ZW5lciA9ICgpID0+IHsiLCIgICAgY29uc3QgYXBpID0gbGlzdGVuZXJBcGk7IiwiICAgIGxpc3RlbmVyQXBpID0gbnVsbDsiLCIgICAgaWYgKCFhcGkpIHJldHVybjsiLCIgICAgdHJ5IHsiLCIgICAgICBhcGkubGlzdGVuZXIuc3RvcCgpOyIsIiAgICB9IGNhdGNoIHsiLCIgICAgfSIsIiAgICBpZiAoZ2V0QXBpU3luYyhhY2NvdW50LmFjY291bnRJZCkgPT09IGFwaSkgaW52YWxpZGF0ZUFwaShhY2NvdW50LmFjY291bnRJZCk7IiwiICB9OyJdXSxbNjM3ODIsMCxbIiAgICBpZiAoc3RvcHBlZCkgcmV0dXJuOyJdXSxbNjM3OTksMCxbIiAgICBzdGF0dXNTaW5rPy4oeyBydW5uaW5nOiBmYWxzZSwgY29ubmVjdGVkOiBmYWxzZSB9KTsiLCIgICAgcmVsZWFzZUxpc3RlbmVyKCk7Il1dLFs2MzgxNiw1LFsiICAgIHN0YXR1c1Npbms/Lih7IGNvbm5lY3RlZDogZmFsc2UsIGxhc3RFcnJvcjogcmVhc29uIH0pOyIsIiAgICByZWxlYXNlTGlzdGVuZXIoKTsiXV0sWzYzODQyLDAsWyIgICAgICBpZiAoc3RvcHBlZCB8fCBhYm9ydFNpZ25hbC5hYm9ydGVkKSB7IiwiICAgICAgICByZXNvbHZlUnVubmluZz8uKCk7IiwiICAgICAgICByZXR1cm47IiwiICAgICAgfSIsIiAgICAgIGxpc3RlbmVyQXBpID0gYXBpOyJdXSxbNjM4NDQsNSxbIiAgICAgICAgc2NoZWR1bGVSZWNvbm5lY3QoXCJyZWJ1aWxkaW5nIGEgcHJldmlvdXMgbGlzdGVuZXIgYXR0ZW1wdFwiKTsiXV0sWzYzOTA3LDAsWyIgICAgICAgIGlmIChzdG9wcGVkIHx8IGFib3J0U2lnbmFsLmFib3J0ZWQgfHwgbGlzdGVuZXJBcGkgIT09IGFwaSkgcmV0dXJuOyJdXSxbNjQwODEsMCxbIiAgICAgICAgaWYgKHN0b3BwZWQgfHwgYWJvcnRTaWduYWwuYWJvcnRlZCB8fCBsaXN0ZW5lckFwaSAhPT0gYXBpKSByZXR1cm47Il1dLFs2NDA4NSwwLFsiICAgICAgICBpZiAoc3RvcHBlZCB8fCBhYm9ydFNpZ25hbC5hYm9ydGVkIHx8IGxpc3RlbmVyQXBpICE9PSBhcGkpIHJldHVybjsiXV0sWzY0MDk3LDAsWyIgICAgICAgIGlmIChzdG9wcGVkIHx8IGFib3J0U2lnbmFsLmFib3J0ZWQgfHwgbGlzdGVuZXJBcGkgIT09IGFwaSkgcmV0dXJuOyJdXSxbNjQxNzQsMCxbIiAgICAgICAgc2NoZWR1bGVSZWNvbm5lY3QoXCJleGlzdGluZyBsaXN0ZW5lciBtdXN0IGJlIHJlYnVpbHQgZm9yIHRoaXMgbW9uaXRvclwiKTsiXV0sWzc5OTM1LDAsWyIgICAgICBjb25uZWN0ZWQ6IGZhbHNlLCJdXSxbNzk5NDMsMCxbIiAgICAgIGNvbm5lY3RlZDogc25hcHNob3QuY29ubmVjdGVkID8/IGZhbHNlLCJdXSxbNzk5NTgsMCxbIiAgICAgICAgY29ubmVjdGVkOiBydW50aW1lMj8uY29ubmVjdGVkID8/IGZhbHNlLCJdXV1d', 'base64').toString('utf8'));
+
+  function patchZaloLifecycle(spec) {
+    const fs = require('node:fs');
+    const path = require('node:path');
+    const crypto = require('node:crypto');
+    const home = process.env.OPENCLAW_HOME || path.join(process.cwd(), '.openclaw');
+    const root = path.join(home, 'extensions', 'zalo-connect');
+    const pkg = path.join(root, 'package.json');
+    if (!fs.existsSync(pkg)) return console.log('[zalo-patch] plugin not installed');
+    if (JSON.parse(fs.readFileSync(pkg, 'utf8')).version !== '3.1.5') {
+      return console.log('[zalo-patch] unsupported version; no changes');
+    }
+    const [relative, beforeHash, afterHash, edits] = spec;
+    const target = path.join(root, relative);
+    if (!fs.existsSync(target)) return console.log('[zalo-patch] unsupported layout; no changes');
+    const before = fs.readFileSync(target, 'utf8');
+    const normalized = before.replace(/\r\n/g, '\n');
+    const hash = text => crypto.createHash('sha256').update(text).digest('hex');
+    if (hash(normalized) === afterHash) return console.log('[zalo-patch] already applied');
+    if (hash(normalized) !== beforeHash) return console.log('[zalo-patch] unknown bundle; no changes');
+    const lines = normalized.split('\n');
+    for (const [start, count, inserted] of [...edits].reverse()) {
+      lines.splice(start, count, ...inserted);
+    }
+    const after = lines.join('\n');
+    if (hash(after) !== afterHash) throw new Error('Zalo lifecycle patch checksum mismatch');
+    const backup = target + '.openclaw-setup-lifecycle.before';
+    if (!fs.existsSync(backup)) fs.copyFileSync(target, backup);
+    const temp = target + '.openclaw-setup-' + process.pid;
+    try {
+      fs.writeFileSync(temp, after, { mode: fs.statSync(target).mode });
+      fs.renameSync(temp, target);
+    } finally {
+      if (fs.existsSync(temp)) fs.unlinkSync(temp);
+    }
+    console.log('[zalo-patch] applied to 3.1.5 bundle');
+  }
+
+
+  function buildZaloLifecyclePatchScript() {
+    return '(' + patchZaloLifecycle.toString() + ')(' + JSON.stringify(ZALO_LIFECYCLE_PATCH) + ');';
+  }
+
   function get9RouterBaseUrl(deployMode = 'native', routerPort) {
     const port = routerPort || NINE_ROUTER_PORT;
     return deployMode === 'docker' ? `http://9router:${port}/v1` : `http://localhost:${port}/v1`;
@@ -265,6 +310,8 @@ If setup reported a plugin install error, run this after the bot is running:
     return {
       baseUrl,
       apiKey: NINE_ROUTER_PROXY_API_KEY,
+      auth: 'api-key',
+      authHeader: true,
       api: 'openai-completions',
       request: {
         allowPrivateNetwork: true,
@@ -329,6 +376,7 @@ If setup reported a plugin install error, run this after the bot is running:
     buildAuthProfilesJson,
     buildAuthProfilesString,
     get9RouterBaseUrl,
+    buildZaloLifecyclePatchScript,
     build9RouterProviderConfig,
     buildGatewayConfig,
   };

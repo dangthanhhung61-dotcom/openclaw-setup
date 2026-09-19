@@ -1,5 +1,13 @@
 # Changelog (English)
 
+## [5.16.6] — 2026-09-19
+
+- Pass the owning agent to Zalo QR login, including clear handling of ambiguous multi-agent projects.
+- Send Bearer Authorization to 9Router; backfill missing auth fields without replacing existing keys or custom settings.
+- Apply a backed-up, checksum-guarded listener lifecycle patch only to the audited Zalo Connect 3.1.5 bundle.
+- Recognize npm-managed DuckDuckGo installations on Docker restart.
+- Document the Windows bind-mount `ERR_EMPTY_RESPONSE` root cause and the data-migration limitation in the [incident report](docs/INCIDENTS-2026-09-18.vi.md). Existing project volumes are not silently changed.
+
 
 ## [5.16.5] — 2026-09-03
 

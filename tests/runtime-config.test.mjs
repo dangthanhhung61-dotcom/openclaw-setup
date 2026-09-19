@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
+import path from 'node:path';
 import test from 'node:test';
 import vm from 'node:vm';
 
@@ -25,6 +26,8 @@ for (const tree of ['src', 'dist']) {
     const common = context.__openclawCommon;
     assert.equal(common.OPENCLAW_NPM_SPEC, expectedSpec);
     assert.equal(common.NINE_ROUTER_NPM_SPEC, '9router@latest');
+    assert.equal(common.build9RouterProviderConfig().auth, 'api-key');
+    assert.equal(common.build9RouterProviderConfig().authHeader, true);
     for (const osChoice of ['win', 'macos', 'linux']) {
       for (const provider of ['9router', 'local', 'direct']) {
         for (const isMultiBot of [false, true]) {
@@ -63,6 +66,29 @@ for (const tree of ['src', 'dist']) {
     assert.match(server, /async function installCore\([^\n]+\) \{\s*\/\/[^\n]+\s*assertOpenclawNodeVersion\(\);\s*state\.installing = true;/);
     assert.match(server, /if \(isNativeProject\(projectDir\)\) \{\s*if \(!isRouter\) assertOpenclawNodeVersion\(\);\s*sendLog\(`\[native\] Updating/);
   });
+  test(`${tree}: 9Router auth migration fills only missing fields`, () => {
+    const context = vm.createContext({ Buffer });
+    vm.runInContext(source(`${tree}/setup/shared/common-gen.js`), context);
+    vm.runInContext(source(`${tree}/setup/shared/docker-gen.js`), context);
+    const script = context.__openclawDockerGen.routerAuthDefaultsScript;
+    for (const initial of [
+      { apiKey: 'test-key' },
+      { apiKey: 'test-key', auth: 'custom', authHeader: false },
+    ]) {
+      let cfg = { models: { providers: { '9router': { ...initial } } }, unrelated: { kept: true } };
+      const fs = {
+        existsSync: () => true,
+        readFileSync: () => JSON.stringify(cfg),
+        writeFileSync: (_, value) => { cfg = JSON.parse(value); },
+      };
+      vm.runInNewContext(script, { require: id => id === 'fs' ? fs : path, process: { cwd: () => '/project' } });
+      const provider = cfg.models.providers['9router'];
+      assert.equal(provider.apiKey, 'test-key');
+      assert.equal(provider.auth, initial.auth ?? 'api-key');
+      assert.equal(provider.authHeader, initial.authHeader ?? true);
+      assert.equal(cfg.unrelated.kept, true);
+    }
+  });
   test(`${tree}: unsupported Node stops before mutations; 9router update is unchanged`, async () => {
     const server = source(`${tree}/server/local-server.js`);
     const names = ['nodeVersionSupported', 'assertOpenclawNodeVersion', 'installCore', 'updateRuntime'];
@@ -98,5 +124,5 @@ test('edited source and distributed files remain identical', () => {
   for (const path of ['setup/shared/common-gen.js', 'setup/shared/docker-gen.js', 'server/local-server.js']) {
     assert.equal(source(`src/${path}`).replace(/\r\n/g, '\n'), source(`dist/${path}`).replace(/\r\n/g, '\n'), path);
   }
-  assert.equal(JSON.parse(source('package.json')).version, '5.16.5');
+  assert.equal(JSON.parse(source('package.json')).version, '5.16.6');
 });

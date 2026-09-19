@@ -7,7 +7,7 @@
 *Chạy một lệnh → mở dashboard → bot lên sóng. Windows · macOS · Linux · VPS — chạy trên Docker, tự cài giúp bạn.*
 
 <p align="center">
-  <a href="https://github.com/tuanminhhole/openclaw-setup/releases"><img src="https://img.shields.io/badge/RELEASE-v5.16.5-0EA5E9?style=for-the-badge" alt="Version 5.16.5" /></a>
+  <a href="https://github.com/dangthanhhung61-dotcom/openclaw-setup"><img src="https://img.shields.io/badge/SOURCE-v5.16.6-0EA5E9?style=for-the-badge" alt="Source 5.16.6" /></a>
   <a href="https://github.com/tuanminhhole/openclaw-setup?tab=MIT-1-ov-file"><img src="https://img.shields.io/badge/LICENSE-MIT-success?style=for-the-badge" alt="MIT License" /></a>
   <a href="https://www.npmjs.com/package/create-openclaw-bot"><img src="https://img.shields.io/npm/v/create-openclaw-bot?style=for-the-badge&label=CLI&color=2563EB&logo=npm&logoColor=white" alt="NPM Version" /></a>
   <a href="https://github.com/tuanminhhole/openclaw-setup/stargazers"><img src="https://img.shields.io/github/stars/tuanminhhole/openclaw-setup?style=for-the-badge&color=eab308&logo=github&logoColor=white" alt="GitHub Stars" /></a>
@@ -37,7 +37,12 @@
 
 ---
 
-## 🆕 Có gì mới trong v5.16.5
+## 🆕 Có gì mới trong v5.16.6
+
+- Sửa đăng nhập QR Zalo cho project nhiều agent, header xác thực 9Router, vòng đời socket Zalo Connect 3.1.5 và việc cài DuckDuckGo lặp lại. [Chi tiết nguyên nhân và giới hạn bản sửa](docs/INCIDENTS-2026-09-18.vi.md).
+- Lưu ý: lỗi Docker bind-mount trên Windows cần di chuyển dữ liệu có sao lưu; bộ cài vẫn sinh bind mount cho project mới và không tự đổi volume của project cũ.
+
+### Trước đó: v5.16.5
 
 - 🩹 **Cài native trên OpenClaw 2026.8 mượt từ phát đầu** - đợt này vá nốt chuỗi lỗi đo được khi dựng máy khách mới: cấu hình sinh ra sạch 100% với bộ soát khắt khe của OpenClaw mới, các bước cài tự chạy đúng thứ tự, và mọi thao tác khởi động lại/cài plugin không còn bị chặn giữa chừng.
 - 🔑 **Đăng nhập 9Router hoạt động trên Docker**: bản 9Router mới chặn mật khẩu mặc định với truy cập "từ xa" - mà trong Docker thì mọi truy cập đều bị tính là từ xa, nên trước đây không cách nào vào được bằng 123456. Giờ đăng nhập bình thường (vào rồi vẫn nên đổi mật khẩu).

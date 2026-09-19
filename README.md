@@ -7,7 +7,7 @@
 *Run one command → open the dashboard → your bot is live. Windows · macOS · Linux · VPS — Docker-powered, auto-installed for you.*
 
 <p align="center">
-  <a href="https://github.com/tuanminhhole/openclaw-setup/releases"><img src="https://img.shields.io/badge/RELEASE-v5.16.5-0EA5E9?style=for-the-badge" alt="Version 5.16.5" /></a>
+  <a href="https://github.com/dangthanhhung61-dotcom/openclaw-setup"><img src="https://img.shields.io/badge/SOURCE-v5.16.6-0EA5E9?style=for-the-badge" alt="Source 5.16.6" /></a>
   <a href="https://github.com/tuanminhhole/openclaw-setup?tab=MIT-1-ov-file"><img src="https://img.shields.io/badge/LICENSE-MIT-success?style=for-the-badge" alt="MIT License" /></a>
   <a href="https://www.npmjs.com/package/create-openclaw-bot"><img src="https://img.shields.io/npm/v/create-openclaw-bot?style=for-the-badge&label=CLI&color=2563EB&logo=npm&logoColor=white" alt="NPM Version" /></a>
   <a href="https://github.com/tuanminhhole/openclaw-setup/stargazers"><img src="https://img.shields.io/github/stars/tuanminhhole/openclaw-setup?style=for-the-badge&color=eab308&logo=github&logoColor=white" alt="GitHub Stars" /></a>
@@ -37,7 +37,12 @@
 
 ---
 
-## 🆕 What's New in v5.16.5
+## 🆕 What's New in v5.16.6
+
+- Fix multi-agent Zalo QR login, 9Router Authorization headers, Zalo Connect 3.1.5 listener lifecycle, and repeated DuckDuckGo installs. See the [root-cause report (Vietnamese)](docs/INCIDENTS-2026-09-18.vi.md).
+- Windows Docker projects still use bind mounts by default; affected new or existing projects require a backed-up data migration.
+
+### Previous: v5.16.5
 
 - 🩹 **Native installs on OpenClaw 2026.8 are smooth from the first run** - this wave patches the remaining chain of issues measured on fresh customer machines: generated configs pass the new strict checks 100%, install steps run in the right order, and restarts/plugin installs no longer get blocked midway.
 - 🔑 **9Router login works on Docker**: the new 9Router blocks the default password for "remote" access - and inside Docker every request counts as remote, so 123456 could never log in. It works now (still change the password once you're in).
