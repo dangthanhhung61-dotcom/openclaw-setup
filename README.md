@@ -15,31 +15,15 @@
 
 [![Tiếng Việt](https://flagcdn.com/20x15/vn.png) Tiếng Việt](README.vi.md) · ![English](https://flagcdn.com/20x15/gb.png) **English**
 
-> 💡 Open-source & free. A management dashboard that automates 100% of project scaffolding, deployment, and control for AI bots on **Telegram · Zalo · Facebook Messenger** (Discord & Lark soon) — set up in minutes, no coding needed.
+> 💡 Open-source & free. A management dashboard that automates project scaffolding, deployment, and control for AI bots on **Telegram · Zalo** (Discord & Lark soon) — set up in minutes, no coding needed.
 
-<p align="center" style="margin: 24px 0;">
-  <img src="https://raw.githubusercontent.com/tuanminhhole/openclaw-setup/main/docs/openclaw-setup.png" alt="OpenClaw Setup" width="90%" style="border-radius: 8px; border: 1px solid #333; margin-bottom: 16px;" />
-  <img src="https://raw.githubusercontent.com/tuanminhhole/openclaw-setup/main/docs/dashboard.png" alt="OpenClaw Dashboard" width="90%" style="border-radius: 8px; border: 1px solid #333; margin-bottom: 16px;" />
-  <img src="https://raw.githubusercontent.com/tuanminhhole/openclaw-setup/main/docs/bot.png" alt="OpenClaw Bot in Action" width="90%" style="border-radius: 8px; border: 1px solid #333;" />
-</p>
-
-</div>
-
----
-
-<div align="center">
-  <a href="https://www.youtube.com/watch?v=hPusYX-5Pmw">
-    <img src="https://img.youtube.com/vi/hPusYX-5Pmw/maxresdefault.jpg" alt="Watch the OpenClaw setup video" width="820" />
-  </a>
-  <br />
-  <strong>▶ Watch the OpenClaw + Zalo setup video on YouTube</strong>
 </div>
 
 ---
 
 ## 🆕 What's New in v5.16.8
 
-- Removed personal Zalo/Facebook/Telegram contact links, donation prompts, and bank/MoMo QR images from the installer. Bot channel support is unchanged.
+- Removed personal social links, donation prompts, and bank/MoMo QR images from the installer. Bot channel support is unchanged.
 
 ### Previous: v5.16.7
 
@@ -137,7 +121,6 @@
 <details>
 <summary><b>Previous: What's new in v5.11.0</b></summary>
 
-- 🚀 **Facebook Messenger, 1-click**: the `fb-messenger` plugin is now **public on ClawHub** and installs straight from the dashboard — create a Messenger bot, open **Bot → Plugins**, and hit **Install** on the `openclaw-fb-messenger` card. Webhook + Graph API, auto User→Page token, HMAC verify.
 - 🐳 **Docker-only, rock-solid**: dropped the native (non-Docker) install path to focus on the Docker flow that runs flawlessly and stably across Windows / macOS / Linux / VPS, with cross-OS Docker auto-install.
 - 🖥️ **Chrome-debug on headless VPS**: the browser-automation Chrome-debug relay now works on a headless VPS (bridge-IP-scoped, auto-opens ufw); the bot file editor also saves non-`.md` text files.
 
@@ -160,7 +143,7 @@
 
 - 🧠 **TencentDB Agent Memory — 1-click install**: New memory plugin in the UI. A 4-tier (L0–L3) layered-memory + context-compression engine that keeps long sessions coherent and **cuts token usage by up to ~61%**. Fully local (SQLite), no API key, Docker-ready.
 - ⚡ **Token-lean defaults for every new bot**: Ships with context pruning (cache-TTL) + `safeguard` compaction — **cheaper & sharper long conversations** with zero tuning.
-- 🎯 **Per-bot & per-channel Skills/Plugins**: Install/enable/disable a skill for **one bot only** (no more leaking across bots); the panel shows only what fits each channel (Zalo / Telegram / Messenger).
+- 🎯 **Per-bot & per-channel Skills/Plugins**: Install/enable/disable a skill for **one bot only** (no more leaking across bots); the panel shows only what fits each channel (Zalo / Telegram).
 - 📤 **Reliable file sending on Zalo & Telegram**: Bots now know the correct outbound ritual (`media/outbound` + `message` tool) and to use modern formats like `.xlsx` — no more "the file won't send".
 - 🐳 **One-click Docker controls**: Restart / Rebuild the bot container and grant it disk access (mount any host folder at `/mnt/<name>`, cross-OS) right from the dashboard — restart your bot without touching the command line.
 - ⚡ **Faster Dashboard & Bot pages**: Runtime/version detection now probes **once** and is cached instead of re-running on every page load — bot status dropped from ~4s to ~3ms on repeat loads. Cache auto-invalidates on update/rebuild/restart/install.
@@ -198,11 +181,11 @@
 
 ## ✨ Features
 
-- 🤖 **Multi-Channel** — Telegram (single or multi-bot relay), Zalo Bot API, Zalo Personal, and Facebook Messenger (Discord & Lark coming soon).
+- 🤖 **Multi-Channel** — Telegram (single or multi-bot relay), Zalo Bot API and Zalo Personal; Discord & Lark coming soon.
 - 🧑‍🤝‍🧑 **Multi-Bot Team** — Run multiple Telegram/Zalo bots simultaneously with synchronized workspaces and teamwork.
 - 🧠 **Unified AI Routing via 9Router** — Easily route messages to Google Gemini, Claude, GPT-4o, OpenRouter, and Ollama (local offline models).
 - 🧩 **Built-in Skills** — Web Search, Browser Automation (Chrome CDP), and Cron/Scheduler tasks.
-- 🔌 **Integrated Marketplace** — Install advanced plugins (like `openclaw-zalo-mod`, Facebook Crawler...) with a single click.
+- 🔌 **Integrated Marketplace** — Install advanced plugins such as `openclaw-zalo-mod` with a single click.
 - 🔀 **9Router Integration** — Open-source OAuth-based AI proxy that gets you up and running for free without individual API keys.
 - 🔒 **Safe & Private** — All configurations and API keys are stored locally on your own machine.
 
@@ -310,7 +293,6 @@ Click **Update** in the **top-right corner of the Setup interface**. It download
 - **Telegram**: Acquire your official Bot Token from `@BotFather`.
 - **Zalo Bot API**: Obtain credentials from [developers.zalo.me](https://developers.zalo.me).
 - **Zalo Personal**: Scan the QR authorization image displayed on the OpenClaw Dashboard.
-- **Facebook Messenger**: Via the `fb-messenger` plugin (public on ClawHub, installable from the Setup UI) — just provide a Page token.
 - **Discord**: _Coming soon._
 - **Lark**: _Coming soon._
 
@@ -392,17 +374,14 @@ Suggestions and PRs are always welcome. If this saved you time, please ⭐ the r
 Companion repos to build a complete, self-running AI assistant:
 
 **🚀 Setup & framework**
-- [openclaw-setup](https://github.com/tuanminhhole/openclaw-setup) — *(this repo)* Set up free AI bots with OpenClaw + 9Router (Telegram/Zalo/Messenger, Docker)
+- [openclaw-setup](https://github.com/tuanminhhole/openclaw-setup) — *(this repo)* Set up free AI bots with OpenClaw + 9Router (Telegram/Zalo, Docker)
 - [vietbrain](https://github.com/tuanminhhole/vietbrain) — Vietnamese "Second Brain" framework for Obsidian (AI-ready)
 
 **🔌 Plugins (runtime)**
-- [openclaw-fb-messenger](https://github.com/tuanminhhole/openclaw-fb-messenger) — Facebook Messenger channel (webhook + Graph API), installable from the Setup UI
 - [openclaw-telegram-multibot-relay](https://github.com/tuanminhhole/openclaw-telegram-multibot-relay) — Multibot Telegram relay, delegation & native cron reminders
 - [openclaw-zalo-connect](https://github.com/tuanminhhole/openclaw-zalo-connect) — Personal Zalo channel/runtime with QR login, native mentions and group actions
 - [openclaw-zalo-mod](https://github.com/tuanminhhole/openclaw-zalo-mod) — Zero-token Zalo group management (slash commands, anti-spam, warn, memory)
 - [openclaw-browser-automation](https://github.com/tuanminhhole/openclaw-browser-automation) — Smart Search & Browser Automation
-- [openclaw-facebook-crawler](https://github.com/tuanminhhole/openclaw-facebook-crawler) — Facebook data crawler
-- [openclaw-n8n-facebook-poster](https://github.com/tuanminhhole/openclaw-n8n-facebook-poster) — Auto-post to Facebook via n8n
 
 **🧩 Skills**
 - [openclaw-learning-memory](https://github.com/tuanminhhole/openclaw-learning-memory) — Always-on memory context engine (injects curated MEMORY.md + USER.md into every turn, incl. groups)

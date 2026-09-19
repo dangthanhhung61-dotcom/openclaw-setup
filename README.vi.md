@@ -15,31 +15,15 @@
 
 ![Tiếng Việt](https://flagcdn.com/20x15/vn.png) **Tiếng Việt** · [![English](https://flagcdn.com/20x15/gb.png) English](README.md)
 
-> 🇻🇳 Mã nguồn mở & miễn phí. Dashboard tự động hóa 100% việc tạo dự án, triển khai và quản lý bot AI trên **Telegram · Zalo · Facebook Messenger** (Discord & Lark sắp ra mắt) — cài trong vài phút, không cần biết code.
+> 🇻🇳 Mã nguồn mở & miễn phí. Dashboard tự động hóa việc tạo dự án, triển khai và quản lý bot AI trên **Telegram · Zalo** (Discord & Lark sắp ra mắt) — cài trong vài phút, không cần biết code.
 
-<p align="center" style="margin: 24px 0;">
-  <img src="https://raw.githubusercontent.com/tuanminhhole/openclaw-setup/main/docs/openclaw-setup-vi.png" alt="OpenClaw Setup" width="90%" style="border-radius: 8px; border: 1px solid #333; margin-bottom: 16px;" />
-  <img src="https://raw.githubusercontent.com/tuanminhhole/openclaw-setup/main/docs/dashboard-vi.png" alt="OpenClaw Dashboard" width="90%" style="border-radius: 8px; border: 1px solid #333; margin-bottom: 16px;" />
-  <img src="https://raw.githubusercontent.com/tuanminhhole/openclaw-setup/main/docs/bot.png" alt="OpenClaw Bot in Action" width="90%" style="border-radius: 8px; border: 1px solid #333;" />
-</p>
-
-</div>
-
----
-
-<div align="center">
-  <a href="https://www.youtube.com/watch?v=hPusYX-5Pmw">
-    <img src="https://img.youtube.com/vi/hPusYX-5Pmw/maxresdefault.jpg" alt="Xem video hướng dẫn cài OpenClaw" width="820" />
-  </a>
-  <br />
-  <strong>▶ Xem video hướng dẫn cài OpenClaw + Zalo trên YouTube</strong>
 </div>
 
 ---
 
 ## 🆕 Có gì mới trong v5.16.8
 
-- Gỡ liên kết liên hệ cá nhân Zalo/Facebook/Telegram, phần mời ủng hộ và ảnh QR ngân hàng/MoMo khỏi bộ cài. Chức năng kết nối bot trên các kênh vẫn giữ nguyên.
+- Gỡ liên kết mạng xã hội cá nhân, phần mời ủng hộ và ảnh QR ngân hàng/MoMo khỏi bộ cài. Chức năng kết nối bot vẫn giữ nguyên.
 
 ### Trước đó: v5.16.7
 
@@ -137,7 +121,6 @@
 <details>
 <summary><b>Trước đó: Có gì mới trong v5.11.0</b></summary>
 
-- 🚀 **Facebook Messenger, cài 1 chạm**: plugin `fb-messenger` giờ đã **public trên ClawHub** và cài ngay trên dashboard — tạo bot Messenger, mở **Bot → Plugins**, bấm **Cài** ở thẻ `openclaw-fb-messenger`. Webhook + Graph API, tự đổi User→Page token, xác minh HMAC.
 - 🐳 **Chỉ còn Docker, cực ổn định**: loại bỏ kiểu cài native (không Docker) để tập trung cho luồng Docker chạy hoàn hảo & ổn định trên Windows / macOS / Linux / VPS, kèm tự cài Docker đa hệ điều hành.
 - 🖥️ **Chrome-debug trên VPS headless**: relay Chrome-debug của browser-automation giờ chạy được trên VPS headless (giới hạn theo bridge-IP, tự mở ufw); trình sửa file bot cũng lưu được file text không phải `.md`.
 
@@ -160,7 +143,7 @@
 
 - 🧠 **TencentDB Agent Memory — cài 1 chạm**: Plugin bộ nhớ mới ngay trên UI. Bộ nhớ phân tầng 4 lớp (L0–L3) + nén ngữ cảnh, giữ session dài mạch lạc và **tiết kiệm tới ~61% token**. Chạy local hoàn toàn (SQLite), không cần API key, sẵn sàng cho Docker.
 - ⚡ **Cấu hình tiết kiệm token mặc định cho mọi bot mới**: Tự có context pruning (cache-TTL) + compaction `safeguard` — **hội thoại dài rẻ hơn & sắc nét hơn**, không cần chỉnh tay.
-- 🎯 **Skills/Plugins theo từng bot & từng kênh**: Cài/bật/tắt skill chỉ cho **đúng 1 bot** (không lan sang bot khác); bảng chỉ hiện thứ phù hợp với kênh (Zalo / Telegram / Messenger).
+- 🎯 **Skills/Plugins theo từng bot & từng kênh**: Cài/bật/tắt skill chỉ cho **đúng 1 bot** (không lan sang bot khác); bảng chỉ hiện thứ phù hợp với kênh (Zalo / Telegram).
 - 📤 **Gửi file ổn định trên Zalo & Telegram**: Bot đã biết quy trình gửi đúng (`media/outbound` + tool `message`) và dùng định dạng hiện đại như `.xlsx` — hết cảnh "không gửi được file".
 - 🐳 **Nút điều khiển Docker 1 chạm**: Restart / Rebuild container bot và cấp quyền ổ đĩa (mount thư mục host bất kỳ vào `/mnt/<tên>`, đa OS) ngay trên dashboard — khởi động lại bot mà không cần gõ lệnh.
 - ⚡ **Trang Dashboard & Bot load nhanh hơn**: Việc dò runtime/version giờ chỉ chạy **một lần** rồi cache thay vì lặp lại mỗi lần tải trang — bot status giảm từ ~4s xuống ~3ms ở các lần tải sau. Cache tự xoá khi update/rebuild/restart/cài đặt.
@@ -198,11 +181,11 @@
 
 ## ✨ Tính năng nổi bật
 
-- 🤖 **Đa kênh** — Telegram (1 hoặc nhiều bot), Zalo Bot API, Zalo Personal (Cá nhân), và Facebook Messenger (Discord & Lark sắp ra mắt).
+- 🤖 **Đa kênh** — Telegram (1 hoặc nhiều bot), Zalo Bot API và Zalo Personal (Cá nhân); Discord & Lark sắp ra mắt.
 - 🧑‍🤝‍🧑 **Đội bot (Multi-bot Team)** — Chạy đồng thời nhiều bot Telegram/Zalo, tự động đồng bộ hóa tài liệu và phối hợp làm việc theo nhóm.
 - 🧠 **Đa nhà cung cấp AI qua 9Router** — Dễ dàng định tuyến đến Google Gemini, Claude, GPT-4o, OpenRouter, Ollama (chạy local offline).
 - 🧩 **Kỹ năng (Skills)** — Web Search, Browser Automation (Chrome CDP thực tế), Cron/Scheduler lập lịch.
-- 🔌 **Plugin tích hợp** — Cài đặt nhanh các plugin nâng cao (`openclaw-zalo-mod`, Facebook Crawler...) chỉ bằng 1 nút nhấn trên UI.
+- 🔌 **Plugin tích hợp** — Cài đặt nhanh các plugin nâng cao như `openclaw-zalo-mod` chỉ bằng 1 nút nhấn trên UI.
 - 🔀 **9Router tích hợp** — Cầu nối AI proxy miễn phí không cần API key thông qua đăng nhập OAuth.
 - 🔒 **An toàn & Riêng tư** — Toàn bộ cấu hình và API key chỉ lưu trên thiết bị của bạn.
 
@@ -310,7 +293,6 @@ Bấm nút **Cập nhật** ở **góc trên bên phải giao diện Setup**. H�
 - **Telegram**: Lấy token bot chính thức từ `@BotFather`.
 - **Zalo Bot API**: Lấy thông tin kết nối chính thức từ [developers.zalo.me](https://developers.zalo.me).
 - **Zalo Cá nhân (Zalo Personal)**: Kích hoạt cực nhanh bằng cách quét mã QR hiển thị ngay trên Dashboard OpenClaw.
-- **Facebook Messenger**: Qua plugin `fb-messenger` (public trên ClawHub, cài ngay trên giao diện Setup) — chỉ cần dùng Page token.
 - **Discord**: _Sắp ra mắt._
 - **Lark**: _Sắp ra mắt._
 
@@ -392,17 +374,14 @@ Mọi góp ý / PR cải tiến đều được hoan nghênh. Nếu thấy hữu
 Các repo đi kèm để bạn dựng một trợ lý AI "tự vận hành" hoàn chỉnh:
 
 **🚀 Cài đặt & khung nền**
-- [openclaw-setup](https://github.com/tuanminhhole/openclaw-setup) — *(repo này)* Setup bot AI miễn phí bằng OpenClaw + 9Router (Telegram/Zalo/Messenger, Docker)
+- [openclaw-setup](https://github.com/tuanminhhole/openclaw-setup) — *(repo này)* Setup bot AI miễn phí bằng OpenClaw + 9Router (Telegram/Zalo, Docker)
 - [vietbrain](https://github.com/tuanminhhole/vietbrain) — Bộ khung "Bộ Não Thứ Hai" tiếng Việt cho Obsidian (sẵn sàng AI)
 
 **🔌 Plugin (runtime)**
-- [openclaw-fb-messenger](https://github.com/tuanminhhole/openclaw-fb-messenger) — Kênh Facebook Messenger (webhook + Graph API), cài ngay trên giao diện Setup
 - [openclaw-telegram-multibot-relay](https://github.com/tuanminhhole/openclaw-telegram-multibot-relay) — Multibot Telegram relay, delegation & cron nhắc lịch native
 - [openclaw-zalo-connect](https://github.com/tuanminhhole/openclaw-zalo-connect) — Channel/runtime Zalo cá nhân với đăng nhập QR, mention native và thao tác nhóm
 - [openclaw-zalo-mod](https://github.com/tuanminhhole/openclaw-zalo-mod) — Quản lý nhóm Zalo zero-token (slash command, anti-spam, warn, memory)
 - [openclaw-browser-automation](https://github.com/tuanminhhole/openclaw-browser-automation) — Smart Search & Browser Automation
-- [openclaw-facebook-crawler](https://github.com/tuanminhhole/openclaw-facebook-crawler) — Crawl dữ liệu Facebook
-- [openclaw-n8n-facebook-poster](https://github.com/tuanminhhole/openclaw-n8n-facebook-poster) — Tự động đăng Facebook qua n8n
 
 **🧩 Skill**
 - [openclaw-learning-memory](https://github.com/tuanminhhole/openclaw-learning-memory) — Context engine trí nhớ always-on (nạp MEMORY.md + USER.md vào mọi lượt, kể cả nhóm)
