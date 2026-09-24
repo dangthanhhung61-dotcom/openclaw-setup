@@ -410,7 +410,7 @@ function topbarActionsHtml() {
       <button class="seg__btn ${state.lang==='en'?'is-active':''}" data-pref="lang" data-value="en">EN</button>
     </div>
     ${hasNewVersion ? `
-    <button class="topbar__btn seg__btn" data-update-setup style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 6px; border: 1px solid var(--ok); background: rgba(46, 230, 166, 0.08); color: var(--ok); font-weight: 600; cursor: pointer; transition: background 0.2s;">
+    <button class="topbar__btn seg__btn" data-update-setup disabled style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 6px; border: 1px solid var(--ok); background: rgba(46, 230, 166, 0.08); color: var(--ok); font-weight: 600; cursor: pointer; transition: background 0.2s;">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:14px; height:14px;"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
       <span>${t('Cập nhật', 'Update')}</span>
     </button>
@@ -1297,17 +1297,6 @@ document.querySelectorAll('[data-project-pick-folder]').forEach(btn => btn.oncli
     state.projectConnectMessage = `ERR ${err.message}`;
     showToast(t('Lỗi kết nối', 'Connection error'), err.message, 'error');
     render();
-  }));
-  document.querySelectorAll('[data-update-setup]').forEach(btn => btn.onclick = () => withButtonLoading(btn, async () => {
-    state.tab = 'logs';
-    render();
-    try {
-      showToast(t('Đang cập nhật...', 'Updating...'), t('Đang tiến hành cập nhật Setup Wizard.', 'Updating Setup Wizard now.'), 'info');
-      await api('/api/setup/update', { method: 'POST' });
-      showToast(t('Khởi động cập nhật', 'Update started'), t('Đang kéo code mới và nâng cấp trong nền.', 'Pulling new code and upgrading in the background.'), 'success');
-    } catch (err) {
-      showToast(t('Cập nhật thất bại', 'Update failed'), err.message, 'error');
-    }
   }));
   document.querySelectorAll('[data-update-app]').forEach(btn => btn.onclick = () => withButtonLoading(btn, async () => {
     await api('/api/runtime/update', { method: 'POST', body: { projectDir: activeProjectDir(), target: 'openclaw' } });
